@@ -1,0 +1,3485 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>KAGES Store Manager</title>
+<style>
+/* ── THEMES ─────────────────────────────────────────── */
+[data-theme="dark"]{
+  --bg:#07090D;--surf:#0D1117;--card:#111823;--card2:#162030;
+  --brd:#1C2A38;--brd2:#233040;--txt:#EEF2F7;--txt2:#8A9BB0;--txt3:#50637A;--shd:rgba(0,0,0,.55)
+}
+[data-theme="light"]{
+  --bg:#F0F4F8;--surf:#FFFFFF;--card:#FFFFFF;--card2:#F7FAFC;
+  --brd:#E2E8F0;--brd2:#CBD5E0;--txt:#1A202C;--txt2:#4A5568;--txt3:#A0AEC0;--shd:rgba(0,0,0,.08)
+}
+:root{
+  --gr:#22C55E;--gr2:rgba(34,197,94,.12);--grb:rgba(34,197,94,.28);
+  --go:#F59E0B;--go2:rgba(245,158,11,.12);
+  --re:#EF4444;--re2:rgba(239,68,68,.12);
+  --bl:#60A5FA;--bl2:rgba(96,165,250,.12);
+  --pu:#A78BFA;--pu2:rgba(167,139,250,.12);
+  --r:13px;--rs:9px;--fn:'Segoe UI',system-ui,-apple-system,sans-serif
+}
+/* ── ACCENT THEMES (override --gr accent color) ─────── */
+[data-accent="blue"]  {--gr:#3B82F6;--gr2:rgba(59,130,246,.12);--grb:rgba(59,130,246,.28)}
+[data-accent="royal"] {--gr:#1D4ED8;--gr2:rgba(29,78,216,.12);--grb:rgba(29,78,216,.28)}
+[data-accent="orange"]{--gr:#F97316;--gr2:rgba(249,115,22,.12);--grb:rgba(249,115,22,.28)}
+[data-accent="purple"]{--gr:#8B5CF6;--gr2:rgba(139,92,246,.12);--grb:rgba(139,92,246,.28)}
+[data-accent="pink"]  {--gr:#EC4899;--gr2:rgba(236,72,153,.12);--grb:rgba(236,72,153,.28)}
+[data-accent="red"]   {--gr:#EF4444;--gr2:rgba(239,68,68,.12);--grb:rgba(239,68,68,.28)}
+/* green is default — no override needed */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fn);color:var(--txt);transition:background .25s,color .25s}
+#app{height:100dvh;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
+
+/* ── SPLASH ─────────────────────────────────────────── */
+#splash{position:fixed;inset:0;z-index:9999;background:#07090D;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .7s,transform .7s}
+#splash.out{opacity:0;transform:scale(1.05);pointer-events:none}
+.sp-ring{position:relative;width:114px;height:114px;margin-bottom:28px}
+.sp-ring svg{position:absolute;inset:0;animation:spinR 2s linear infinite}
+.sp-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.sp-logo{width:70px;height:70px;background:linear-gradient(135deg,#22C55E,#0D9748);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 0 40px rgba(34,197,94,.5);animation:spglow 2s ease-in-out infinite}
+@keyframes spinR{to{transform:rotate(360deg)}}
+@keyframes spglow{0%,100%{box-shadow:0 0 28px rgba(34,197,94,.4)}50%{box-shadow:0 0 55px rgba(34,197,94,.7)}}
+.sp-lets{display:flex;gap:5px;margin-bottom:10px}
+.sp-l{font-size:42px;font-weight:900;background:linear-gradient(180deg,#fff 30%,rgba(255,255,255,.25));-webkit-background-clip:text;-webkit-text-fill-color:transparent;opacity:0;transform:translateY(22px);animation:lUp .5s cubic-bezier(.34,1.56,.64,1) forwards}
+.sp-l:nth-child(1){animation-delay:.28s}.sp-l:nth-child(2){animation-delay:.42s}.sp-l:nth-child(3){animation-delay:.56s}.sp-l:nth-child(4){animation-delay:.70s}.sp-l:nth-child(5){animation-delay:.84s}
+@keyframes lUp{to{opacity:1;transform:translateY(0)}}
+/* FIX: correct animation shorthand — name duration timing delay fill-mode */
+.sp-sub{font-size:11px;color:rgba(255,255,255,.33);letter-spacing:3px;text-transform:uppercase;font-weight:600;opacity:0;animation:fadeIn .4s ease 1.25s forwards}
+.sp-prog{width:145px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:34px;overflow:hidden;opacity:0;animation:fadeIn .3s ease 1.45s forwards}
+.sp-bar{height:100%;width:0;background:linear-gradient(90deg,#22C55E,#0D9748);animation:loadBar 1.85s ease 1.45s forwards}
+@keyframes loadBar{to{width:100%}}
+@keyframes fadeIn{to{opacity:1}}
+
+/* ── LOCK ───────────────────────────────────────────── */
+#lock{position:fixed;inset:0;z-index:8888;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.lk-logo{width:66px;height:66px;background:linear-gradient(135deg,#22C55E,#0D9748);border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:13px;box-shadow:0 4px 22px rgba(34,197,94,.3)}
+.lk-t{font-size:21px;font-weight:800;margin-bottom:5px}
+.lk-s{font-size:12px;color:var(--txt3);margin-bottom:26px}
+.pdots{display:flex;gap:13px;margin-bottom:24px}
+.pd{width:14px;height:14px;border-radius:50%;background:var(--brd2);transition:background .14s}
+.pd.on{background:var(--gr)}
+.ppad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:250px}
+.pk{padding:16px;text-align:center;background:var(--card);border:1px solid var(--brd2);border-radius:var(--r);font-size:20px;font-weight:700;cursor:pointer;transition:all .1s;user-select:none}
+.pk:active{background:var(--gr);color:#000;transform:scale(.93)}
+.pin-err{color:var(--re);font-size:12px;margin-top:9px;min-height:18px;text-align:center}
+
+/* ── HEADER ─────────────────────────────────────────── */
+#hdr{background:var(--surf);border-bottom:1px solid var(--brd);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
+.hl{display:flex;align-items:center;gap:9px}
+.hmark{width:34px;height:34px;background:linear-gradient(135deg,#22C55E,#0D9748);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.hname{font-size:17px;font-weight:800;color:var(--txt)}
+.hname em{color:var(--gr);font-style:normal}
+.hr{display:flex;align-items:center;gap:6px}
+.hbtn{width:32px;height:32px;border-radius:8px;background:var(--card);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}
+.hchip{font-size:10px;color:var(--txt3);background:var(--card);padding:4px 9px;border-radius:20px;border:1px solid var(--brd)}
+
+/* ── PAGES ──────────────────────────────────────────── */
+#main{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:72px}
+.page{display:none;padding:13px 14px;animation:pgUp .18s ease}
+.page.active{display:block}
+@keyframes pgUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── NAV ────────────────────────────────────────────── */
+#nav{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--brd);display:flex;height:64px;z-index:100;padding-bottom:env(safe-area-inset-bottom,0)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:none;color:var(--txt3);font-family:var(--fn);transition:color .14s;position:relative}
+.nb.on{color:var(--gr)}
+.ni{font-size:18px;line-height:1}.nl{font-size:9px;font-weight:700}
+.nbadge{position:absolute;top:4px;right:calc(50% - 16px);background:var(--re);color:#fff;font-size:8px;font-weight:800;padding:1px 4px;border-radius:10px;min-width:15px;text-align:center}
+
+/* ── BASE ───────────────────────────────────────────── */
+.pg-t{font-size:20px;font-weight:800;letter-spacing:-.4px}
+.pg-s{font-size:11px;color:var(--txt3);margin-top:2px}
+.shdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:13px}
+.slbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);margin-bottom:8px}
+.divv{height:1px;background:var(--brd);margin:14px 0}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:13px;margin-bottom:10px}
+
+/* ── STATS ──────────────────────────────────────────── */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.st{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:12px}
+.stl{font-size:9px;letter-spacing:.6px;text-transform:uppercase;color:var(--txt3);margin-bottom:5px}
+.stv{font-size:19px;font-weight:800;letter-spacing:-.5px}
+.stf{font-size:10px;color:var(--txt3);margin-top:2px}
+.cg{color:var(--gr)}.cgo{color:var(--go)}.cb{color:var(--bl)}.cr{color:var(--re)}
+
+/* ── TARGET ─────────────────────────────────────────── */
+.tgt{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:12px;margin-bottom:10px}
+.tgt-top{display:flex;justify-content:space-between;margin-bottom:7px}
+.tgt-lbl{font-size:11px;font-weight:700;color:var(--txt2)}
+.tgt-pct{font-size:12px;font-weight:800;color:var(--gr)}
+.tgt-trk{height:7px;background:var(--brd);border-radius:4px;overflow:hidden}
+.tgt-fill{height:100%;background:linear-gradient(90deg,var(--gr),#0D9748);border-radius:4px;transition:width .6s}
+.tgt-vs{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--txt3)}
+
+/* ── BUTTONS ────────────────────────────────────────── */
+.fab{width:100%;padding:14px;background:var(--gr);border-radius:var(--r);border:none;cursor:pointer;font-family:var(--fn);font-size:14px;font-weight:700;color:#000;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px;box-shadow:0 4px 16px rgba(34,197,94,.24);transition:all .13s}
+.fab:active{transform:scale(.97);box-shadow:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 15px;border-radius:var(--rs);border:none;cursor:pointer;font-family:var(--fn);font-size:12px;font-weight:700;transition:all .12s}
+.bp{background:var(--gr);color:#000}.bp:active{background:#16A34A;transform:scale(.97)}
+.bs{background:var(--card2);color:var(--txt);border:1px solid var(--brd2)}.bs:active{background:var(--brd)}
+.bd{background:var(--re2);color:var(--re);border:1px solid rgba(239,68,68,.28)}
+.bgo{background:var(--go2);color:var(--go);border:1px solid rgba(245,158,11,.3)}
+.bw{width:100%}.bsm{padding:6px 11px;font-size:11px}
+.ibtn{padding:7px;border-radius:var(--rs);background:var(--card2);border:1px solid var(--brd);color:var(--txt2);cursor:pointer;font-size:12px}
+.ibtn:active{background:var(--brd)}
+
+/* ── SEARCH ─────────────────────────────────────────── */
+.srch{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--brd2);border-radius:var(--rs);padding:9px 11px;margin-bottom:11px}
+.srch-in{flex:1;background:none;border:none;outline:none;color:var(--txt);font-size:13px;font-family:var(--fn)}
+.srch-in::placeholder{color:var(--txt3)}
+
+/* ── FORM ───────────────────────────────────────────── */
+.fg{margin-bottom:11px}
+.fl{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--txt2);margin-bottom:5px;display:block}
+.fi,.fs{width:100%;padding:10px 11px;background:var(--card);border:1px solid var(--brd2);border-radius:var(--rs);color:var(--txt);font-size:13px;font-family:var(--fn);outline:none;transition:border .14s;-webkit-appearance:none}
+.fi:focus,.fs:focus{border-color:var(--gr)}
+.fi::placeholder{color:var(--txt3)}
+.fs option{background:var(--surf)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qty-row{display:flex;align-items:center;gap:9px}
+.qb{width:40px;height:40px;background:var(--card2);border:1px solid var(--brd2);border-radius:var(--rs);font-size:20px;font-weight:700;color:var(--txt);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;user-select:none;transition:all .1s}
+.qb:active{background:var(--brd);transform:scale(.92)}
+.qi{flex:1;text-align:center;font-size:18px;font-weight:800}
+
+/* ── PILLS ──────────────────────────────────────────── */
+.pr{display:flex;gap:5px;flex-wrap:wrap}
+.pill{flex:1;min-width:0;padding:8px 4px;text-align:center;background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);font-size:11px;font-weight:600;color:var(--txt2);cursor:pointer;transition:all .13s;white-space:nowrap}
+.pg{background:var(--gr2);border-color:var(--grb);color:var(--gr)}
+.pgo{background:var(--go2);border-color:rgba(245,158,11,.28);color:var(--go)}
+.pb{background:var(--bl2);border-color:rgba(96,165,250,.28);color:var(--bl)}
+.pp{background:var(--pu2);border-color:rgba(167,139,250,.28);color:var(--pu)}
+
+/* ── PRICE BOX ──────────────────────────────────────── */
+.pbox{background:var(--go2);border:1px solid rgba(245,158,11,.22);border-radius:var(--rs);padding:13px;text-align:center;margin:9px 0}
+.pbl{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--go)}
+.pba{font-size:26px;font-weight:800;color:var(--go);margin-top:3px;letter-spacing:-1px}
+.pbs{font-size:10px;color:var(--go);opacity:.7;margin-top:2px}
+
+/* ── CATEGORY TREE ──────────────────────────────────── */
+.main-cat{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);cursor:pointer;margin-bottom:5px;transition:background .1s;user-select:none}
+.main-cat.active{background:var(--gr2);border-color:var(--grb)}
+.main-cat-lbl{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+.main-cat-cnt{font-size:10px;font-weight:700;color:var(--txt3)}
+.sub-cats{padding-left:12px;margin-bottom:5px}
+.sub-cat{padding:7px 11px;background:var(--card2);border:1px solid var(--brd);border-radius:var(--rs);cursor:pointer;margin-bottom:4px;font-size:12px;font-weight:600;color:var(--txt2);transition:all .12s;display:flex;align-items:center;justify-content:space-between}
+.sub-cat.active{background:var(--gr2);border-color:var(--grb);color:var(--gr)}
+
+/* ── TABS ───────────────────────────────────────────── */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:11px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;cursor:pointer;border:1px solid var(--brd);background:var(--card);color:var(--txt2);transition:all .13s}
+.tab.on{background:var(--gr2);border-color:var(--grb);color:var(--gr)}
+
+/* ── PRODUCT ITEM ───────────────────────────────────── */
+.pi{background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 11px;margin-bottom:6px;display:flex;align-items:center;gap:9px;transition:border-color .14s}
+.pi-em{font-size:22px;width:34px;text-align:center;flex-shrink:0}
+.pi-inf{flex:1;min-width:0}
+.pi-nm{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-mt{font-size:10px;color:var(--txt3);margin-top:2px}
+.pi-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.pi-lo{border-color:rgba(239,68,68,.3)!important}
+.stk-ok{color:var(--gr);font-size:10px;font-weight:700}
+.stk-lo{color:var(--go);font-size:10px;font-weight:700}
+.stk-z{color:var(--re);font-size:10px;font-weight:700}
+
+/* ── PKG CHIPS ──────────────────────────────────────── */
+.pkg-row{display:flex;gap:5px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}
+.pkg-row::-webkit-scrollbar{display:none}
+.pkg-chip{padding:7px 11px;border-radius:var(--rs);background:var(--card);border:1px solid var(--brd);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .13s;flex-shrink:0;text-align:center}
+.pkg-chip.on{background:var(--gr2);border-color:var(--grb);color:var(--gr)}
+
+/* ── PKG ADD ROW ────────────────────────────────────── */
+.pkg-add-row{display:flex;gap:6px;align-items:flex-end;margin-bottom:8px}
+.pkg-add-row .fi{padding:8px 9px;font-size:12px}
+
+/* ── CART ───────────────────────────────────────────── */
+.cart-item{background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 11px;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+.ci-inf{flex:1;min-width:0}
+.ci-nm{font-size:12px;font-weight:700}
+.ci-det{font-size:10px;color:var(--txt3);margin-top:2px}
+.ci-tot{font-size:13px;font-weight:800;color:var(--gr);flex-shrink:0}
+
+/* ── SALE ROW ───────────────────────────────────────── */
+.sale-row{background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:9px 11px;margin-bottom:5px;display:flex;align-items:center;gap:9px}
+.sale-t{font-size:10px;color:var(--txt3);text-align:center;width:28px;flex-shrink:0;line-height:1.4}
+.sale-inf{flex:1;min-width:0}
+.sale-nm{font-size:12px;font-weight:700}
+.sale-det{font-size:10px;color:var(--txt3);margin-top:2px}
+.sale-amt{font-size:12px;font-weight:800;color:var(--gr);flex-shrink:0}
+
+/* ── BADGE ──────────────────────────────────────────── */
+.bdg{display:inline-flex;align-items:center;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:700}
+.bg{background:var(--gr2);color:var(--gr);border:1px solid var(--grb)}
+.bgo2{background:var(--go2);color:var(--go);border:1px solid rgba(245,158,11,.28)}
+.bb{background:var(--bl2);color:var(--bl);border:1px solid rgba(96,165,250,.28)}
+.br{background:var(--re2);color:var(--re);border:1px solid rgba(239,68,68,.28)}
+
+/* ── CUSTOMER ───────────────────────────────────────── */
+.cu-row{background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 11px;margin-bottom:6px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:background .1s}
+.cu-row:active{background:var(--card2)}
+.cu-av{width:36px;height:36px;border-radius:50%;background:var(--bl2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.cu-inf{flex:1;min-width:0}
+.cu-nm{font-size:12px;font-weight:700}
+.cu-mt{font-size:10px;color:var(--txt3);margin-top:2px}
+.cu-bal{font-size:13px;font-weight:800;flex-shrink:0}
+
+/* ── CHART ──────────────────────────────────────────── */
+.bars{display:flex;align-items:flex-end;gap:4px;height:64px;margin-top:6px}
+.bwrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar{width:100%;border-radius:3px 3px 0 0;min-height:3px;transition:height .5s}
+.bar-lbl{font-size:8px;font-weight:600;color:var(--txt3)}
+
+/* ── RECEIPT ────────────────────────────────────────── */
+.rcpt{background:#fff;color:#000;border-radius:var(--rs);padding:16px;font-family:'Courier New',monospace;font-size:11px;line-height:1.75}
+.rc{text-align:center}
+.rl{border-top:1px dashed #999;margin:6px 0}
+.rr{display:flex;justify-content:space-between}
+.rt{font-size:14px;font-weight:900;letter-spacing:2px}
+.rs2{font-size:9px;color:#555}
+
+/* ── SETTINGS ───────────────────────────────────────── */
+.si{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);margin-bottom:6px;cursor:pointer;transition:background .1s}
+.si:active{background:var(--card2)}
+.si-l{font-size:13px;font-weight:700}
+.si-d{font-size:10px;color:var(--txt3);margin-top:2px}
+.qr{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)}
+.qr:last-child{border-bottom:none}
+.tog{position:relative;width:42px;height:24px;cursor:pointer;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tsl{position:absolute;inset:0;background:var(--brd2);border-radius:12px;transition:.3s}
+.tsl:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.tog input:checked+.tsl{background:var(--gr)}
+.tog input:checked+.tsl:before{transform:translateX(18px)}
+
+/* ── OVERLAY ────────────────────────────────────────── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.ov.open{opacity:1;pointer-events:all}
+.sheet{background:var(--surf);border:1px solid var(--brd2);border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:15px 15px 38px;max-height:92vh;overflow-y:auto;transform:translateY(28px);transition:transform .22s}
+.ov.open .sheet{transform:translateY(0)}
+.sh{width:36px;height:4px;background:var(--brd2);border-radius:2px;margin:0 auto 15px}
+.sht{font-size:16px;font-weight:800;margin-bottom:13px;letter-spacing:-.3px;color:var(--txt)}
+
+/* ── TOAST ──────────────────────────────────────────── */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--card2);border:1px solid var(--brd2);border-radius:30px;padding:8px 19px;font-size:12px;font-weight:600;color:var(--txt);z-index:700;opacity:0;transition:all .2s;white-space:nowrap;pointer-events:none;box-shadow:0 4px 16px var(--shd)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.ok{border-color:var(--grb);color:var(--gr)}
+#toast.err{border-color:rgba(239,68,68,.3);color:var(--re)}
+
+/* ── EMPTY ──────────────────────────────────────────── */
+.empty{text-align:center;padding:36px 16px}
+.ei{font-size:42px;margin-bottom:9px}
+.et{font-size:13px;font-weight:700;color:var(--txt2)}
+.es{font-size:11px;color:var(--txt3);margin-top:3px}
+
+/* ── BRAND FOOTER ───────────────────────────────────── */
+.bfoot{text-align:center;padding:13px 10px 5px;border-top:1px solid var(--brd);margin-top:7px}
+.bfoot-name{font-size:13px;font-weight:800;color:var(--txt2);letter-spacing:.5px}
+.bfoot-name em{color:var(--gr);font-style:normal}
+.bfoot-ct{font-size:11px;color:var(--txt3);margin-top:3px}
+.wa-link{color:var(--gr);font-weight:700;text-decoration:none}
+
+/* ── THEME PICKER ───────────────────────────────────── */
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
+.theme-swatch{padding:10px 6px;border-radius:var(--rs);border:2px solid transparent;cursor:pointer;text-align:center;background:var(--card2);transition:all .15s}
+.theme-swatch.on{border-color:var(--gr);background:var(--gr2)}
+.swatch-dot{width:28px;height:28px;border-radius:50%;margin:0 auto 5px;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.swatch-lbl{font-size:10px;font-weight:700;color:var(--txt2)}
+
+/* ── EMERGENCY BANNER ───────────────────────────────── */
+.emg-banner{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:var(--rs);padding:11px 13px;margin-bottom:10px;cursor:pointer}
+.emg-hdr{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.emg-icon{font-size:15px}
+.emg-title{font-size:12px;font-weight:800;color:var(--re);flex:1}
+.emg-cnt{font-size:10px;font-weight:700;color:var(--re);background:var(--re2);padding:2px 7px;border-radius:10px}
+.emg-preview{font-size:11px;color:var(--re);opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── NOTE ITEM ──────────────────────────────────────── */
+.note-item{background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:11px 12px;margin-bottom:7px;cursor:pointer;transition:background .1s}
+.note-item:active{background:var(--card2)}
+.note-item.emg{border-color:rgba(239,68,68,.35);background:var(--re2)}
+.note-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.note-title{font-size:13px;font-weight:700;color:var(--txt)}
+.note-body{font-size:11px;color:var(--txt3);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note-date{font-size:10px;color:var(--txt3);margin-top:4px}
+
+/* ── TOOLS HUB ──────────────────────────────────────── */
+.tool-card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:13px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:background .1s}
+.tool-card:active{background:var(--card2)}
+.tool-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.tool-inf{flex:1;min-width:0}
+.tool-name{font-size:13px;font-weight:700;color:var(--txt)}
+.tool-desc{font-size:11px;color:var(--txt3);margin-top:2px}
+
+/* ── CALC TABS ──────────────────────────────────────── */
+.ctabs{display:flex;gap:0;margin-bottom:13px;background:var(--card2);border-radius:var(--rs);padding:3px;border:1px solid var(--brd)}
+.ctab{flex:1;padding:8px 5px;text-align:center;font-size:11px;font-weight:700;color:var(--txt3);cursor:pointer;border-radius:7px;transition:all .15s}
+.ctab.on{background:var(--gr);color:#000}
+
+/* ── LOSS RECORD ────────────────────────────────────── */
+.loss-row{background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 12px;margin-bottom:6px}
+.loss-top{display:flex;justify-content:space-between;align-items:center}
+.loss-prod{font-size:12px;font-weight:700}
+.loss-amt{font-size:13px;font-weight:800;color:var(--re)}
+.loss-meta{font-size:10px;color:var(--txt3);margin-top:2px}
+
+/* ── RESULT BOX ─────────────────────────────────────── */
+.res-box{background:var(--card2);border:1px solid var(--brd2);border-radius:var(--rs);padding:12px;margin-top:10px}
+.res-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--brd)}
+.res-row:last-child{border-bottom:none}
+.res-k{font-size:11px;color:var(--txt2)}
+.res-v{font-size:12px;font-weight:700;color:var(--txt)}
+
+/* PRODUCT PHOTO */
+.prod-photo{width:42px;height:42px;border-radius:8px;object-fit:cover;border:1px solid var(--brd);flex-shrink:0}
+.photo-placeholder{width:42px;height:42px;border-radius:8px;background:var(--card2);border:1px dashed var(--brd2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;cursor:pointer}
+.photo-btn-wrap{position:relative;overflow:hidden;display:inline-block}
+.photo-btn-wrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* EXPENSE */
+.exp-row{background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.exp-inf{flex:1;min-width:0}.exp-nm{font-size:12px;font-weight:700}
+.exp-mt{font-size:10px;color:var(--txt3);margin-top:2px}
+.exp-amt{font-size:13px;font-weight:800;color:var(--re);flex-shrink:0;margin-left:10px}
+
+/* ADMIN/ROLE */
+.role-admin{background:var(--go2);color:var(--go);border:1px solid rgba(245,158,11,.3);padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.role-staff{background:var(--bl2);color:var(--bl);border:1px solid rgba(96,165,250,.3);padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+
+/* TOP SELLERS */
+.seller-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--brd)}
+.seller-row:last-child{border-bottom:none}
+.seller-rank{width:22px;height:22px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--txt3);flex-shrink:0}
+.seller-rank.gold{background:var(--go2);color:var(--go)}
+.seller-rank.silver{background:rgba(148,163,184,.15);color:#94A3B8}
+.seller-rank.bronze{background:rgba(180,120,60,.12);color:#B4783C}
+.seller-bar-wrap{flex:1;min-width:0}
+.seller-name{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seller-bar-track{height:4px;background:var(--brd);border-radius:2px;margin-top:3px;overflow:hidden}
+.seller-bar-fill{height:100%;background:var(--gr);border-radius:2px}
+.seller-val{font-size:11px;font-weight:800;color:var(--go);flex-shrink:0}
+
+/* ── PDF PRICE LIST ─────────────────────────────────── */
+@media print {
+  body * { visibility: hidden !important; }
+  #pdf-preview, #pdf-preview * { visibility: visible !important; }
+  #pdf-preview { position: fixed; inset: 0; z-index: 99999; background: #fff; padding: 20px; }
+  .no-print { display: none !important; }
+}
+.pdf-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+.pdf-table th { background: #0D9748; color: #fff; padding: 8px 7px; text-align: left; font-size: 11px; }
+.pdf-table td { padding: 7px; border-bottom: 1px solid #E2E8F0; font-size: 11px; }
+.pdf-table tr:nth-child(even) td { background: #F7FAFC; }
+.pdf-table tr:hover td { background: #F0FDF4; }
+.pdf-cat-row td { background: #E8F5E9 !important; font-weight: 700; font-size: 11px; color: #0D9748; padding: 5px 7px; }
+
+/* ── SMART PRICING ──────────────────────────────────── */
+.sp-result { background: var(--card); border: 1px solid var(--brd); border-radius: var(--rs); padding: 13px; margin-top: 12px; }
+.sp-rec { background: linear-gradient(135deg, var(--gr2), rgba(34,197,94,0.05)); border: 2px solid var(--gr); border-radius: var(--rs); padding: 14px; text-align: center; margin: 10px 0; }
+.sp-rec-lbl { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--gr); }
+.sp-rec-price { font-size: 32px; font-weight: 900; color: var(--gr); margin: 5px 0; letter-spacing: -1px; }
+.sp-rec-sub { font-size: 11px; color: var(--gr); opacity: .75; }
+.sp-warn { background: var(--go2); border: 1px solid rgba(245,158,11,.3); border-radius: var(--rs); padding: 10px; margin: 8px 0; font-size: 11px; color: var(--go); }
+.sp-danger { background: var(--re2); border: 1px solid rgba(239,68,68,.3); border-radius: var(--rs); padding: 10px; margin: 8px 0; font-size: 11px; color: var(--re); }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="sp-ring">
+    <svg width="114" height="114" viewBox="0 0 114 114">
+      <circle cx="57" cy="57" r="50" stroke="rgba(34,197,94,.12)" stroke-width="3" fill="none"/>
+      <path d="M57 7A50 50 0 0 1 107 57" stroke="#22C55E" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+      <path d="M57 7A50 50 0 0 1 83 14" stroke="#0D9748" stroke-width="3" stroke-linecap="round" fill="none" opacity=".5"/>
+    </svg>
+    <div class="sp-icon"><div class="sp-logo">🏪</div></div>
+  </div>
+  <div class="sp-lets">
+    <span class="sp-l">K</span><span class="sp-l">A</span><span class="sp-l">G</span><span class="sp-l">E</span><span class="sp-l">S</span>
+  </div>
+  <div class="sp-sub">Store Manager · Nigeria</div>
+  <div class="sp-prog"><div class="sp-bar"></div></div>
+</div>
+
+<!-- LOCK -->
+<div id="lock">
+  <div class="lk-logo">🏪</div>
+  <div class="lk-t">KAGES</div>
+  <div class="lk-s">Enter your PIN</div>
+  <div class="pdots">
+    <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div>
+    <div class="pd" id="pd2"></div><div class="pd" id="pd3"></div>
+  </div>
+  <div class="ppad">
+    <div class="pk" onclick="pk('1')">1</div><div class="pk" onclick="pk('2')">2</div><div class="pk" onclick="pk('3')">3</div>
+    <div class="pk" onclick="pk('4')">4</div><div class="pk" onclick="pk('5')">5</div><div class="pk" onclick="pk('6')">6</div>
+    <div class="pk" onclick="pk('7')">7</div><div class="pk" onclick="pk('8')">8</div><div class="pk" onclick="pk('9')">9</div>
+    <div class="pk" style="font-size:13px" onclick="pk('C')">⌫</div>
+    <div class="pk" onclick="pk('0')">0</div>
+    <div class="pk" style="font-size:11px;color:var(--gr)" onclick="pk('OK')">OK</div>
+  </div>
+  <div class="pin-err" id="pin-err"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header id="hdr">
+    <div class="hl">
+      <div class="hmark">🏪</div>
+      <div class="hname">KA<em>GES</em></div>
+    </div>
+    <div class="hr">
+      <div class="hbtn" id="tbtn" onclick="toggleTheme()">🌙</div>
+      <div class="hchip" id="hchip">—</div>
+    </div>
+  </header>
+  <div id="main">
+    <div class="page active" id="pg-home"></div>
+    <div class="page" id="pg-products"></div>
+    <div class="page" id="pg-cart"></div>
+    <div class="page" id="pg-history"></div>
+    <div class="page" id="pg-more"></div>
+  </div>
+  <nav id="nav">
+    <button class="nb on" onclick="go('home')"><span class="ni">🏠</span><span class="nl">Home</span></button>
+    <button class="nb" onclick="go('products')"><span class="ni">📦</span><span class="nl">Products</span></button>
+    <button class="nb" onclick="go('cart')"><span class="ni">🛒</span><span class="nl">New Sale</span><span class="nbadge" id="cbadge" style="display:none">0</span></button>
+    <button class="nb" onclick="go('history')"><span class="ni">📋</span><span class="nl">History</span></button>
+    <button class="nb" onclick="go('more')"><span class="ni">☰</span><span class="nl">More</span></button>
+  </nav>
+</div>
+
+<!-- MODALS -->
+<div class="ov" id="m-prod" onclick="closeM('m-prod')"><div class="sheet" onclick="event.stopPropagation()"><div class="sh"></div><div class="sht" id="m-prod-t">Product</div><div id="m-prod-b"></div></div></div>
+<div class="ov" id="m-stk" onclick="closeM('m-stk')"><div class="sheet" onclick="event.stopPropagation()"><div class="sh"></div><div class="sht">Update Stock</div><div id="m-stk-b"></div></div></div>
+<div class="ov" id="m-atc" onclick="closeM('m-atc')"><div class="sheet" onclick="event.stopPropagation()"><div class="sh"></div><div class="sht" id="m-atc-t">Add to Cart</div><div id="m-atc-b"></div></div></div>
+<div class="ov" id="m-rcpt" onclick="closeM('m-rcpt')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh"></div><div class="sht">🧾 Receipt</div>
+    <div id="m-rcpt-b"></div>
+    <div style="display:flex;gap:7px;margin-top:11px">
+      <button class="btn bgo bw" onclick="shareWA()">📲 WhatsApp</button>
+      <button class="btn bs" onclick="printRcpt()">🖨️ Print</button>
+      <button class="btn bs" onclick="closeM('m-rcpt')">Close</button>
+    </div>
+  </div>
+</div>
+<div class="ov" id="m-day" onclick="closeM('m-day')"><div class="sheet" onclick="event.stopPropagation()"><div class="sh"></div><div class="sht" id="m-day-t">Sales</div><div id="m-day-b"></div></div></div>
+<div class="ov" id="m-cust" onclick="closeM('m-cust')"><div class="sheet" onclick="event.stopPropagation()"><div class="sh"></div><div class="sht" id="m-cust-t">Customer</div><div id="m-cust-b"></div></div></div>
+<div class="ov" id="m-cdet" onclick="closeM('m-cdet')"><div class="sheet" onclick="event.stopPropagation()"><div class="sh"></div><div class="sht" id="m-cdet-t">Account</div><div id="m-cdet-b"></div></div></div>
+<div class="ov" id="m-set" onclick="closeM('m-set')"><div class="sheet" onclick="event.stopPropagation()"><div class="sh"></div><div class="sht" id="m-set-t">Settings</div><div id="m-set-b"></div></div></div>
+<div class="ov" id="m-del" onclick="closeM('m-del')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh"></div><div class="sht">Confirm Delete</div>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px" id="del-msg">Are you sure?</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn bs" style="flex:1" onclick="closeM('m-del')">Cancel</button>
+      <button class="btn bd" style="flex:1" id="del-ok">🗑️ Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<input type="file" id="f-imp" accept=".json" style="display:none" onchange="handleImport(this)">
+<input type="file" id="f-csv" accept=".csv,.txt" style="display:none" onchange="handleCSV(this)">
+<input type="file" id="f-photo" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this)">
+
+<!-- PDF PRICE LIST MODAL -->
+<div class="ov" id="m-pdf" onclick="closeM('m-pdf')">
+  <div class="sheet" onclick="event.stopPropagation()" style="max-height:95vh">
+    <div class="sh"></div>
+    <div class="sht">📄 Export Price List (PDF)</div>
+    <div id="m-pdf-b"></div>
+  </div>
+</div>
+
+<!-- PDF PREVIEW (used for printing) -->
+<div id="pdf-preview" style="display:none;position:fixed;inset:0;z-index:9998;background:#fff;overflow-y:auto;padding:20px">
+  <div id="pdf-content"></div>
+  <div class="no-print" style="display:flex;gap:10px;justify-content:center;margin-top:20px;padding:10px">
+    <button onclick="window.print()" style="padding:12px 24px;background:#0D9748;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">🖨️ Print / Save as PDF</button>
+    <button onclick="closePDFPreview()" style="padding:12px 24px;background:#E2E8F0;color:#333;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">✕ Close</button>
+  </div>
+</div>
+
+<!-- SMART PRICING MODAL -->
+<div class="ov" id="m-smartprice" onclick="closeM('m-smartprice')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh"></div>
+    <div class="sht">🧮 Smart Pricing Calculator</div>
+    <div id="m-smartprice-b"></div>
+  </div>
+</div>
+
+<!-- EXPENSE MODAL -->
+<div class="ov" id="m-exp" onclick="closeM('m-exp')"><div class="sheet" onclick="event.stopPropagation()">
+  <div class="sh"></div><div class="sht">💸 Add Expense</div><div id="m-exp-b"></div>
+</div></div>
+
+<!-- EXPENSES LIST MODAL -->
+<div class="ov" id="m-explist" onclick="closeM('m-explist')"><div class="sheet" onclick="event.stopPropagation()">
+  <div class="sh"></div><div class="sht">💸 Expense Tracker</div><div id="m-explist-b"></div>
+</div></div>
+
+<!-- TOP SELLERS MODAL -->
+<div class="ov" id="m-sellers" onclick="closeM('m-sellers')"><div class="sheet" onclick="event.stopPropagation()">
+  <div class="sh"></div><div class="sht">🏆 Top Sellers</div><div id="m-sellers-b"></div>
+</div></div>
+
+<!-- ADMIN SETUP MODAL -->
+<div class="ov" id="m-admin" onclick="closeM('m-admin')"><div class="sheet" onclick="event.stopPropagation()">
+  <div class="sh"></div><div class="sht" id="m-admin-t">Admin Settings</div><div id="m-admin-b"></div>
+</div></div>
+
+<!-- CSV MODAL -->
+<div class="ov" id="m-csv" onclick="closeM('m-csv')"><div class="sheet" onclick="event.stopPropagation()">
+  <div class="sh"></div><div class="sht">📊 CSV Bulk Import/Export</div><div id="m-csv-b"></div>
+</div></div>
+
+<!-- ── THEME PICKER MODAL ── -->
+<div class="ov" id="m-theme" onclick="closeM('m-theme')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh"></div>
+    <div class="sht">🎨 Choose Theme</div>
+    <div class="slbl" style="margin-bottom:8px">BASE MODE</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div style="flex:1;padding:11px;text-align:center;background:var(--card2);border:2px solid var(--brd);border-radius:var(--rs);cursor:pointer;transition:all .15s" id="base-dark" onclick="setBase('dark')">
+        <div style="font-size:20px;margin-bottom:4px">🌙</div>
+        <div style="font-size:11px;font-weight:700;color:var(--txt2)">Dark</div>
+      </div>
+      <div style="flex:1;padding:11px;text-align:center;background:var(--card2);border:2px solid var(--brd);border-radius:var(--rs);cursor:pointer;transition:all .15s" id="base-light" onclick="setBase('light')">
+        <div style="font-size:20px;margin-bottom:4px">☀️</div>
+        <div style="font-size:11px;font-weight:700;color:var(--txt2)">Light</div>
+      </div>
+    </div>
+    <div class="slbl" style="margin-bottom:8px">ACCENT COLOR</div>
+    <div class="theme-grid" id="accent-grid"></div>
+    <button class="btn bs bw" onclick="closeM('m-theme')">Done</button>
+  </div>
+</div>
+
+<!-- ── NOTES MODAL ── -->
+<div class="ov" id="m-notes" onclick="closeM('m-notes')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh"></div>
+    <div class="sht">📝 Notes</div>
+    <div id="m-notes-b"></div>
+  </div>
+</div>
+
+<!-- ── NOTE EDIT MODAL ── -->
+<div class="ov" id="m-note-edit" onclick="closeM('m-note-edit')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh"></div>
+    <div class="sht" id="m-note-edit-t">Add Note</div>
+    <div id="m-note-edit-b"></div>
+  </div>
+</div>
+
+<!-- ── TOOLS / CALCULATORS MODAL ── -->
+<div class="ov" id="m-tools" onclick="closeM('m-tools')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh"></div>
+    <div class="sht">🧮 Advanced Tools</div>
+    <div id="m-tools-b"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════
+//  FULL CATALOGUE — 75+ Nigerian Products
+// ═══════════════════════════════════════════════════
+const DF=[
+  // DRINKS › Soft Drinks › Glass Bottle
+  {id:'d001',name:'Coca-Cola',cat:'Drinks',sub:'Soft Drinks',sub2:'Glass Bottle',emo:'🥤',pkgs:[{t:'Crate',q:24,p:3600},{t:'Half Crate',q:12,p:1850},{t:'Unit',q:1,p:200}]},
+  {id:'d002',name:'Pepsi',cat:'Drinks',sub:'Soft Drinks',sub2:'Glass Bottle',emo:'🥤',pkgs:[{t:'Crate',q:24,p:3400},{t:'Half Crate',q:12,p:1750},{t:'Unit',q:1,p:190}]},
+  {id:'d003',name:'Fanta Orange',cat:'Drinks',sub:'Soft Drinks',sub2:'Glass Bottle',emo:'🥤',pkgs:[{t:'Crate',q:24,p:3500},{t:'Half Crate',q:12,p:1800},{t:'Unit',q:1,p:200}]},
+  {id:'d004',name:'Sprite',cat:'Drinks',sub:'Soft Drinks',sub2:'Glass Bottle',emo:'🥤',pkgs:[{t:'Crate',q:24,p:3500},{t:'Half Crate',q:12,p:1800},{t:'Unit',q:1,p:200}]},
+  {id:'d005',name:'7Up',cat:'Drinks',sub:'Soft Drinks',sub2:'Glass Bottle',emo:'🥤',pkgs:[{t:'Crate',q:24,p:3300},{t:'Half Crate',q:12,p:1700},{t:'Unit',q:1,p:190}]},
+  {id:'d006',name:'Mirinda Orange',cat:'Drinks',sub:'Soft Drinks',sub2:'Glass Bottle',emo:'🥤',pkgs:[{t:'Crate',q:24,p:3200},{t:'Unit',q:1,p:180}]},
+  // DRINKS › Soft Drinks › PET Plastic
+  {id:'d007',name:'Coca-Cola PET 50cl',cat:'Drinks',sub:'Soft Drinks',sub2:'PET Plastic',emo:'🍾',pkgs:[{t:'Carton',q:12,p:2400},{t:'Half Carton',q:6,p:1250},{t:'Unit',q:1,p:280}]},
+  {id:'d008',name:'Coca-Cola PET 1.5L',cat:'Drinks',sub:'Soft Drinks',sub2:'PET Plastic',emo:'🍾',pkgs:[{t:'Carton',q:12,p:7200},{t:'Unit',q:1,p:750}]},
+  {id:'d009',name:'Pepsi PET 50cl',cat:'Drinks',sub:'Soft Drinks',sub2:'PET Plastic',emo:'🍾',pkgs:[{t:'Carton',q:12,p:2200},{t:'Unit',q:1,p:280}]},
+  {id:'d010',name:'Fanta Orange PET 50cl',cat:'Drinks',sub:'Soft Drinks',sub2:'PET Plastic',emo:'🍾',pkgs:[{t:'Carton',q:12,p:2300},{t:'Unit',q:1,p:280}]},
+  {id:'d011',name:'Sprite PET 50cl',cat:'Drinks',sub:'Soft Drinks',sub2:'PET Plastic',emo:'🍾',pkgs:[{t:'Carton',q:12,p:2300},{t:'Unit',q:1,p:280}]},
+  {id:'d012',name:'7Up PET 50cl',cat:'Drinks',sub:'Soft Drinks',sub2:'PET Plastic',emo:'🍾',pkgs:[{t:'Carton',q:12,p:2200},{t:'Unit',q:1,p:280}]},
+  // DRINKS › Malt Drinks
+  {id:'d013',name:'Malta Guinness 33cl',cat:'Drinks',sub:'Malt Drinks',sub2:'',emo:'🍺',pkgs:[{t:'Carton',q:24,p:5500},{t:'Half Carton',q:12,p:2800},{t:'Unit',q:1,p:300}]},
+  {id:'d014',name:'Maltina 33cl',cat:'Drinks',sub:'Malt Drinks',sub2:'',emo:'🍺',pkgs:[{t:'Carton',q:24,p:5400},{t:'Unit',q:1,p:300}]},
+  {id:'d015',name:'Amstel Malta 33cl',cat:'Drinks',sub:'Malt Drinks',sub2:'',emo:'🍺',pkgs:[{t:'Carton',q:24,p:5200},{t:'Unit',q:1,p:290}]},
+  {id:'d016',name:'Hi-Malt 33cl',cat:'Drinks',sub:'Malt Drinks',sub2:'',emo:'🍺',pkgs:[{t:'Carton',q:24,p:4800},{t:'Unit',q:1,p:250}]},
+  {id:'d017',name:'Dubic Malt',cat:'Drinks',sub:'Malt Drinks',sub2:'',emo:'🍺',pkgs:[{t:'Carton',q:24,p:4600},{t:'Unit',q:1,p:240}]},
+  // DRINKS › Energy & Juice
+  {id:'d018',name:'Lucozade Boost 33cl',cat:'Drinks',sub:'Energy & Juice',sub2:'',emo:'⚡',pkgs:[{t:'Carton',q:24,p:7200},{t:'Unit',q:1,p:400}]},
+  {id:'d019',name:'Ribena Blackcurrant 50cl',cat:'Drinks',sub:'Energy & Juice',sub2:'',emo:'🫐',pkgs:[{t:'Carton',q:12,p:3600},{t:'Unit',q:1,p:400}]},
+  {id:'d020',name:'Chi Exotic Juice 35cl',cat:'Drinks',sub:'Energy & Juice',sub2:'',emo:'🍹',pkgs:[{t:'Carton',q:12,p:3000},{t:'Unit',q:1,p:350}]},
+  {id:'d021',name:'Power Horse 250ml',cat:'Drinks',sub:'Energy & Juice',sub2:'',emo:'⚡',pkgs:[{t:'Carton',q:24,p:6000},{t:'Unit',q:1,p:350}]},
+  {id:'d022',name:'5 Alive Pulpy Orange 35cl',cat:'Drinks',sub:'Energy & Juice',sub2:'',emo:'🍊',pkgs:[{t:'Carton',q:12,p:3200},{t:'Unit',q:1,p:380}]},
+  // DRINKS › Water
+  {id:'d023',name:'Eva Water 75cl',cat:'Drinks',sub:'Water',sub2:'',emo:'💧',pkgs:[{t:'Carton',q:12,p:1200},{t:'Unit',q:1,p:150}]},
+  {id:'d024',name:'Eva Water 1.5L',cat:'Drinks',sub:'Water',sub2:'',emo:'💧',pkgs:[{t:'Carton',q:12,p:1800},{t:'Unit',q:1,p:200}]},
+  {id:'d025',name:'Nestle Pure Life 75cl',cat:'Drinks',sub:'Water',sub2:'',emo:'💧',pkgs:[{t:'Carton',q:12,p:1300},{t:'Unit',q:1,p:150}]},
+  // PROVISIONS › Noodles & Pasta
+  {id:'p001',name:'Indomie Chicken 70g',cat:'Provisions',sub:'Noodles & Pasta',sub2:'',emo:'🍜',pkgs:[{t:'Carton',q:40,p:4800},{t:'Pack (5pcs)',q:5,p:650},{t:'Unit',q:1,p:150}]},
+  {id:'p002',name:'Indomie Onion Chicken 70g',cat:'Provisions',sub:'Noodles & Pasta',sub2:'',emo:'🍜',pkgs:[{t:'Carton',q:40,p:4800},{t:'Pack (5pcs)',q:5,p:650},{t:'Unit',q:1,p:150}]},
+  {id:'p003',name:'Indomie Pepper Chicken 70g',cat:'Provisions',sub:'Noodles & Pasta',sub2:'',emo:'🍜',pkgs:[{t:'Carton',q:40,p:4800},{t:'Pack (5pcs)',q:5,p:650},{t:'Unit',q:1,p:150}]},
+  {id:'p004',name:'Indomie Hungry Man 120g',cat:'Provisions',sub:'Noodles & Pasta',sub2:'',emo:'🍜',pkgs:[{t:'Carton',q:20,p:5200},{t:'Unit',q:1,p:300}]},
+  {id:'p005',name:'Golden Penny Spaghetti 500g',cat:'Provisions',sub:'Noodles & Pasta',sub2:'',emo:'🍝',pkgs:[{t:'Carton',q:20,p:14000},{t:'Unit',q:1,p:800}]},
+  {id:'p006',name:'Dangote Spaghetti 500g',cat:'Provisions',sub:'Noodles & Pasta',sub2:'',emo:'🍝',pkgs:[{t:'Carton',q:20,p:13500},{t:'Unit',q:1,p:780}]},
+  // PROVISIONS › Milk & Beverages
+  {id:'p007',name:'Peak Milk Full Cream 170g',cat:'Provisions',sub:'Milk & Beverages',sub2:'',emo:'🥛',pkgs:[{t:'Carton',q:24,p:19200},{t:'Dozen',q:12,p:9800},{t:'Unit',q:1,p:950}]},
+  {id:'p008',name:'Cowbell Milk Sachet 20s',cat:'Provisions',sub:'Milk & Beverages',sub2:'',emo:'🥛',pkgs:[{t:'Carton',q:40,p:8000},{t:'Box (20pcs)',q:20,p:4200},{t:'Unit',q:1,p:250}]},
+  {id:'p009',name:'Three Crowns Milk 160g',cat:'Provisions',sub:'Milk & Beverages',sub2:'',emo:'🥛',pkgs:[{t:'Carton',q:24,p:17000},{t:'Unit',q:1,p:850}]},
+  // PROVISIONS › Hot Beverages
+  {id:'p010',name:'Milo 200g Tin',cat:'Provisions',sub:'Hot Beverages',sub2:'',emo:'☕',pkgs:[{t:'Carton',q:24,p:16800},{t:'Dozen',q:12,p:8600},{t:'Unit',q:1,p:800}]},
+  {id:'p011',name:'Milo Sachet 100pcs',cat:'Provisions',sub:'Hot Beverages',sub2:'',emo:'☕',pkgs:[{t:'Box',q:100,p:5000},{t:'Pack (10pcs)',q:10,p:550},{t:'Unit',q:1,p:70}]},
+  {id:'p012',name:'Bournvita 500g',cat:'Provisions',sub:'Hot Beverages',sub2:'',emo:'☕',pkgs:[{t:'Carton',q:12,p:19200},{t:'Unit',q:1,p:1800}]},
+  {id:'p013',name:'Ovaltine 400g',cat:'Provisions',sub:'Hot Beverages',sub2:'',emo:'☕',pkgs:[{t:'Carton',q:12,p:18000},{t:'Unit',q:1,p:1700}]},
+  {id:'p014',name:'Nescafe Classic Sachet',cat:'Provisions',sub:'Hot Beverages',sub2:'',emo:'☕',pkgs:[{t:'Box (100pcs)',q:100,p:4000},{t:'Pack (10pcs)',q:10,p:450},{t:'Unit',q:1,p:60}]},
+  {id:'p015',name:'Lipton Yellow Label Tea 50s',cat:'Provisions',sub:'Hot Beverages',sub2:'',emo:'🍵',pkgs:[{t:'Carton',q:24,p:9600},{t:'Box (50pcs)',q:50,p:500},{t:'Unit',q:1,p:30}]},
+  {id:'p016',name:'Golden Morn 500g',cat:'Provisions',sub:'Hot Beverages',sub2:'Cereals',emo:'🌽',pkgs:[{t:'Carton',q:12,p:16000},{t:'Unit',q:1,p:1500}]},
+  // PROVISIONS › Cooking Essentials
+  {id:'p017',name:'Gino Tomato Paste 70g',cat:'Provisions',sub:'Cooking Essentials',sub2:'',emo:'🍅',pkgs:[{t:'Carton',q:24,p:4800},{t:'Dozen',q:12,p:2500},{t:'Unit',q:1,p:250}]},
+  {id:'p018',name:'Gino Vegetable Oil 750ml',cat:'Provisions',sub:'Cooking Essentials',sub2:'',emo:'🫙',pkgs:[{t:'Carton',q:12,p:21600},{t:'Unit',q:1,p:2000}]},
+  {id:'p019',name:'Dangote Sugar 1kg',cat:'Provisions',sub:'Cooking Essentials',sub2:'',emo:'🍬',pkgs:[{t:'Carton',q:20,p:14000},{t:'Unit',q:1,p:800}]},
+  {id:'p020',name:'Dangote Salt 1kg',cat:'Provisions',sub:'Cooking Essentials',sub2:'',emo:'🧂',pkgs:[{t:'Carton',q:20,p:4000},{t:'Unit',q:1,p:250}]},
+  {id:'p021',name:'Semovita 1kg',cat:'Provisions',sub:'Cooking Essentials',sub2:'',emo:'🌾',pkgs:[{t:'Carton',q:12,p:9600},{t:'Unit',q:1,p:950}]},
+  {id:'p022',name:'Knorr Seasoning Cubes',cat:'Provisions',sub:'Cooking Essentials',sub2:'Seasonings',emo:'🧄',pkgs:[{t:'Carton',q:72,p:3600},{t:'Pack (8pcs)',q:8,p:450},{t:'Unit',q:1,p:70}]},
+  {id:'p023',name:'Maggi Chicken Cube',cat:'Provisions',sub:'Cooking Essentials',sub2:'Seasonings',emo:'🧄',pkgs:[{t:'Carton',q:72,p:3600},{t:'Pack (8pcs)',q:8,p:450},{t:'Unit',q:1,p:70}]},
+  // SNACKS › Biscuits
+  {id:'s001',name:'Digestive Biscuit 200g',cat:'Snacks',sub:'Biscuits',sub2:'',emo:'🍪',pkgs:[{t:'Carton',q:12,p:12000},{t:'Unit',q:1,p:1200}]},
+  {id:'s002',name:'Cabin Biscuit (Big)',cat:'Snacks',sub:'Biscuits',sub2:'',emo:'🍪',pkgs:[{t:'Carton',q:24,p:4800},{t:'Pack (4pcs)',q:4,p:850},{t:'Unit',q:1,p:250}]},
+  {id:'s003',name:'Rich Tea Biscuit',cat:'Snacks',sub:'Biscuits',sub2:'',emo:'🍪',pkgs:[{t:'Carton',q:24,p:5000},{t:'Unit',q:1,p:250}]},
+  {id:'s004',name:'Crackers Biscuit',cat:'Snacks',sub:'Biscuits',sub2:'',emo:'🥨',pkgs:[{t:'Carton',q:24,p:6000},{t:'Pack (6pcs)',q:6,p:1600},{t:'Unit',q:1,p:300}]},
+  {id:'s005',name:'Oreo Cookies 133g',cat:'Snacks',sub:'Biscuits',sub2:'',emo:'🍪',pkgs:[{t:'Carton',q:12,p:9600},{t:'Unit',q:1,p:950}]},
+  // SNACKS › Sweets & Candy
+  {id:'s006',name:'Tom Tom Sweet',cat:'Snacks',sub:'Sweets & Candy',sub2:'',emo:'🍬',pkgs:[{t:'Box (100pcs)',q:100,p:1800},{t:'Pack (10pcs)',q:10,p:200},{t:'Unit',q:1,p:25}]},
+  {id:'s007',name:'Trebor Extra Strong',cat:'Snacks',sub:'Sweets & Candy',sub2:'',emo:'🍬',pkgs:[{t:'Box (100pcs)',q:100,p:2000},{t:'Pack (10pcs)',q:10,p:220},{t:'Unit',q:1,p:30}]},
+  {id:'s008',name:'Choco Milo Bar',cat:'Snacks',sub:'Sweets & Candy',sub2:'',emo:'🍫',pkgs:[{t:'Box (40pcs)',q:40,p:3600},{t:'Pack (10pcs)',q:10,p:950},{t:'Unit',q:1,p:110}]},
+  // TOILETRIES › Soap & Detergents
+  {id:'t001',name:'Omo Detergent 500g',cat:'Toiletries',sub:'Soap & Detergents',sub2:'',emo:'🧼',pkgs:[{t:'Carton',q:12,p:9600},{t:'Unit',q:1,p:950}]},
+  {id:'t002',name:'Ariel Detergent 500g',cat:'Toiletries',sub:'Soap & Detergents',sub2:'',emo:'🧼',pkgs:[{t:'Carton',q:12,p:10800},{t:'Unit',q:1,p:1050}]},
+  {id:'t003',name:'Key Soap (Big)',cat:'Toiletries',sub:'Soap & Detergents',sub2:'',emo:'🧼',pkgs:[{t:'Carton',q:36,p:3600},{t:'Dozen',q:12,p:1300},{t:'Unit',q:1,p:130}]},
+  {id:'t004',name:'Lux Soap Bar',cat:'Toiletries',sub:'Soap & Bathing',sub2:'',emo:'🛁',pkgs:[{t:'Carton',q:24,p:4800},{t:'Dozen',q:12,p:2500},{t:'Unit',q:1,p:250}]},
+  {id:'t005',name:'Dettol Soap 110g',cat:'Toiletries',sub:'Soap & Bathing',sub2:'',emo:'🛁',pkgs:[{t:'Carton',q:24,p:6000},{t:'Dozen',q:12,p:3100},{t:'Unit',q:1,p:300}]},
+  {id:'t006',name:'Tura Soap 100g',cat:'Toiletries',sub:'Soap & Bathing',sub2:'',emo:'🛁',pkgs:[{t:'Carton',q:24,p:5500},{t:'Dozen',q:12,p:2800},{t:'Unit',q:1,p:280}]},
+  // TOILETRIES › Oral Care
+  {id:'t007',name:'Close-Up Toothpaste 100ml',cat:'Toiletries',sub:'Oral Care',sub2:'Toothpaste',emo:'🦷',pkgs:[{t:'Carton',q:12,p:7200},{t:'Dozen',q:12,p:7200},{t:'Unit',q:1,p:700}]},
+  {id:'t008',name:'Colgate Toothpaste 75ml',cat:'Toiletries',sub:'Oral Care',sub2:'Toothpaste',emo:'🦷',pkgs:[{t:'Carton',q:12,p:7800},{t:'Unit',q:1,p:750}]},
+  {id:'t009',name:'Macleans Toothpaste 100ml',cat:'Toiletries',sub:'Oral Care',sub2:'Toothpaste',emo:'🦷',pkgs:[{t:'Carton',q:12,p:7500},{t:'Unit',q:1,p:720}]},
+  {id:'t010',name:'Oral-B Toothbrush Medium',cat:'Toiletries',sub:'Oral Care',sub2:'Toothbrush',emo:'🪥',pkgs:[{t:'Box',q:12,p:6000},{t:'Unit',q:1,p:600}]},
+  // TOILETRIES › Shaving & Grooming
+  {id:'t011',name:'Gillette Mach3 Razor',cat:'Toiletries',sub:'Shaving & Grooming',sub2:'',emo:'🪒',pkgs:[{t:'Box',q:12,p:3600},{t:'Unit',q:1,p:380}]},
+  {id:'t012',name:'Bic Disposable Razor 4-pack',cat:'Toiletries',sub:'Shaving & Grooming',sub2:'',emo:'🪒',pkgs:[{t:'Carton',q:24,p:2400},{t:'Pack (4pcs)',q:4,p:420},{t:'Unit',q:1,p:120}]},
+  {id:'t013',name:'Pears Shaving Cream 100g',cat:'Toiletries',sub:'Shaving & Grooming',sub2:'',emo:'🪒',pkgs:[{t:'Carton',q:12,p:6000},{t:'Unit',q:1,p:600}]},
+  // TOILETRIES › Skincare
+  {id:'t014',name:'Vaseline Body Lotion 400ml',cat:'Toiletries',sub:'Skincare',sub2:'',emo:'🧴',pkgs:[{t:'Carton',q:12,p:14400},{t:'Unit',q:1,p:1400}]},
+  {id:'t015',name:'Jergens Body Lotion 400ml',cat:'Toiletries',sub:'Skincare',sub2:'',emo:'🧴',pkgs:[{t:'Carton',q:12,p:12000},{t:'Unit',q:1,p:1200}]},
+  // TOILETRIES › Hair Care
+  {id:'t016',name:'Dark & Lovely Relaxer',cat:'Toiletries',sub:'Hair Care',sub2:'',emo:'💇',pkgs:[{t:'Carton',q:12,p:12000},{t:'Unit',q:1,p:1200}]},
+  {id:'t017',name:'Cantu Shea Butter Lotion',cat:'Toiletries',sub:'Hair Care',sub2:'',emo:'💇',pkgs:[{t:'Carton',q:12,p:14400},{t:'Unit',q:1,p:1400}]},
+  // HOUSEHOLD
+  {id:'h001',name:'Baygon Insecticide Spray',cat:'Household',sub:'Insecticides',sub2:'',emo:'🪲',pkgs:[{t:'Carton',q:12,p:10800},{t:'Unit',q:1,p:1100}]},
+  {id:'h002',name:'Mortein Spray 300ml',cat:'Household',sub:'Insecticides',sub2:'',emo:'🪲',pkgs:[{t:'Carton',q:12,p:9600},{t:'Unit',q:1,p:950}]},
+  {id:'h003',name:'Harpic Toilet Cleaner 500ml',cat:'Household',sub:'Cleaning',sub2:'',emo:'🧹',pkgs:[{t:'Carton',q:12,p:9600},{t:'Unit',q:1,p:950}]},
+  {id:'h004',name:'Dettol Disinfectant 500ml',cat:'Household',sub:'Cleaning',sub2:'',emo:'🧹',pkgs:[{t:'Carton',q:12,p:10800},{t:'Unit',q:1,p:1050}]},
+  {id:'h005',name:'Kingfisher Matches',cat:'Household',sub:'Cleaning',sub2:'',emo:'🔥',pkgs:[{t:'Bundle (50boxes)',q:50,p:1200},{t:'Box',q:1,p:40}]},
+];
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+const KEY = 'kages_v4';
+let D = { biz:'My Store', products:[], sales:[], customers:[], notes:[], losses:[], expenses:[], target:50000, pin:'', accent:'green', adminPass:'', role:'admin', ts:Date.now() };
+let CUR = 'home';
+let pF = { main:'', sub:'', sub2:'', search:'' };
+let editPid = null;
+let editCid = null;
+let CART = { custId:'', saleType:'retail', items:[] };
+let cSearch = '';
+let cCatF = 'All';
+let lastRcpt = null;
+let camStr = null;
+// FIX: use module-level variable for selected pkg index instead of DOM property
+let atcPkgIdx = 0;
+let atcPid = '';
+let pkgRowIdx = 0;
+
+// ═══════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════
+function load() {
+  try {
+    const s = localStorage.getItem(KEY);
+    if (s) {
+      D = JSON.parse(s);
+      // Migration: init any new arrays/fields missing from older saves
+      if (!D.notes)     D.notes     = [];
+      if (!D.losses)    D.losses    = [];
+      if (!D.expenses)  D.expenses  = [];
+      if (!D.accent)    D.accent    = 'green';
+      if (!D.adminPass) D.adminPass = '';
+      if (!D.role)      D.role      = 'admin';
+      // Migrate photos from old product objects (photos now in PHOTOS store)
+      D.products.forEach(p => { if (!p.updatedAt) p.updatedAt = 0; });
+      return;
+    }
+  } catch(e) {}
+  D.products = DF.map(p => ({ ...p, stock:0, updatedAt:Date.now() }));
+  save();
+}
+function save() { D.ts = Date.now(); localStorage.setItem(KEY, JSON.stringify(D)); }
+function uid() { return 'x' + Date.now() + Math.random().toString(36).slice(2,6); }
+function N(n) { return '₦' + (+n||0).toLocaleString('en-NG', {minimumFractionDigits:0, maximumFractionDigits:2}); }
+function today() { return new Date().toISOString().slice(0,10); }
+function nowt() { return new Date().toTimeString().slice(0,5); }
+function fd(s) { if (!s) return ''; return new Date(s+'T12:00:00').toLocaleDateString('en-NG',{weekday:'short',month:'short',day:'numeric'}); }
+function greet() { const h = new Date().getHours(); return h<12?'Morning':h<17?'Afternoon':'Evening'; }
+// FIX: safe buy-cost-per-unit — always returns a number
+function getBuyCost(p) {
+  const pk = p.pkgs && p.pkgs[0];
+  if (!pk || !pk.q) return 0;
+  return pk.p / pk.q;
+}
+function todRev() { return D.sales.filter(s=>s.date===today()).reduce((a,s)=>a+s.total,0); }
+function todCnt() { return D.sales.filter(s=>s.date===today()).length; }
+function totDebt() { return D.customers.reduce((a,c)=>a+(c.balance||0),0); }
+function debCnt() { return D.customers.filter(c=>(c.balance||0)>0).length; }
+function cartTotal() { return CART.items.reduce((a,i)=>a+i.subtotal,0); }
+function updBadge() {
+  const n = CART.items.length;
+  const el = document.getElementById('cbadge');
+  if (el) { el.style.display = n ? 'block' : 'none'; el.textContent = n; }
+}
+function catEmo(c) {
+  return {Drinks:'🥤',Provisions:'🛒',Snacks:'🍿',Toiletries:'🧴',Household:'🏠'}[c]||'📦';
+}
+
+// ═══════════════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════════════
+function go(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(x => x.classList.remove('on'));
+  document.getElementById('pg-' + p).classList.add('active');
+  const idx = ['home','products','cart','history','more'].indexOf(p);
+  if (idx >= 0) document.querySelectorAll('.nb')[idx].classList.add('on');
+  CUR = p;
+  render(p);
+  document.getElementById('main').scrollTop = 0;
+  stopCam();
+}
+function render(p) { ({home:rHome, products:rProd, cart:rCart, history:rHist, more:rMore})[p]?.(); updLowStockBadge(); }
+
+// ═══════════════════════════════════════════════════
+//  HOME
+// ═══════════════════════════════════════════════════
+function rHome() {
+  const rev = todRev(), cnt = todCnt(), tgt = D.target||50000;
+  const pct = Math.min(100, Math.round((rev/tgt)*100));
+  const weekly = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = d.toISOString().slice(0,10);
+    weekly.push({ l:d.toLocaleDateString('en-NG',{weekday:'short'}), v:D.sales.filter(s=>s.date===ds).reduce((a,s)=>a+s.total,0), t:i===0 });
+  }
+  const mx = Math.max(...weekly.map(w=>w.v), 1);
+  const ts = D.sales.filter(s => s.date === today());
+  const pm = {};
+  ts.forEach(s => { if (!pm[s.pid]) pm[s.pid] = {n:s.pname, v:0}; pm[s.pid].v += s.total; });
+  const tops = Object.values(pm).sort((a,b)=>b.v-a.v).slice(0,3);
+
+  const emgNotes = (D.notes||[]).filter(n => n.emergency);
+
+  document.getElementById('pg-home').innerHTML = `
+    ${emgNotes.length ? `
+    <div class="emg-banner" onclick="openNotes()">
+      <div class="emg-hdr">
+        <span class="emg-icon">🚨</span>
+        <span class="emg-title">EMERGENCY NOTES</span>
+        <span class="emg-cnt">${emgNotes.length}</span>
+      </div>
+      <div class="emg-preview">${emgNotes[0].title}${emgNotes.length>1?` + ${emgNotes.length-1} more`:''}</div>
+    </div>` : ''}
+    <div class="shdr" style="margin-bottom:14px">
+      <div><div class="pg-t">Good ${greet()} 👋</div>
+      <div class="pg-s">${D.biz} · ${new Date().toLocaleDateString('en-NG',{day:'numeric',month:'long',year:'numeric'})}</div></div>
+    </div>
+    <div class="sg">
+      <div class="st"><div class="stl">Today Revenue</div><div class="stv cgo">${N(rev)}</div><div class="stf">${cnt} sale${cnt!==1?'s':''}</div></div>
+      <div class="st"><div class="stl">Outstanding Debt</div><div class="stv cr">${N(totDebt())}</div><div class="stf">${debCnt()} customer${debCnt()!==1?'s':''}</div></div>
+    </div>
+    <div class="tgt">
+      <div class="tgt-top"><div class="tgt-lbl">🎯 Target: ${N(tgt)}</div><div class="tgt-pct">${pct}%</div></div>
+      <div class="tgt-trk"><div class="tgt-fill" style="width:${pct}%"></div></div>
+      <div class="tgt-vs"><span>${N(rev)} earned</span><span>${N(Math.max(0,tgt-rev))} to go</span></div>
+    </div>
+    <button class="fab" onclick="go('cart')">🛒 &nbsp;New Sale / Cart</button>
+    <div class="card">
+      <div class="slbl">📈 7-Day Revenue</div>
+      <div class="bars">
+        ${weekly.map(w=>`<div class="bwrap"><div class="bar" style="height:${Math.max(3,Math.round((w.v/mx)*56))}px;background:${w.t?'var(--gr)':'var(--brd2)'}"></div><div class="bar-lbl" style="color:${w.t?'var(--gr)':'var(--txt3)'}">${w.l}</div></div>`).join('')}
+      </div>
+      <div style="text-align:right;margin-top:7px;font-size:10px;color:var(--txt3)">7-day: <strong style="color:var(--go)">${N(weekly.reduce((a,w)=>a+w.v,0))}</strong></div>
+    </div>
+    ${tops.length ? `<div class="card"><div class="slbl">🏆 Top Today</div>
+      ${tops.map((p,i)=>`<div class="qr"><div style="display:flex;align-items:center;gap:8px"><div style="width:18px;height:18px;background:var(--card2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--txt3)">${i+1}</div><span style="font-size:12px;font-weight:600">${p.n}</span></div><span style="font-size:12px;font-weight:800;color:var(--go)">${N(p.v)}</span></div>`).join('')}
+    </div>` : ''}
+    ${ts.length ? `<div class="card"><div class="slbl">🕐 Recent</div>
+      ${ts.slice(-5).reverse().map(s=>`<div class="qr"><div><div style="font-size:12px;font-weight:600">${s.pname}</div><div style="font-size:10px;color:var(--txt3)">${s.time} · ${s.qty} × ${s.pkgT} · ${s.st}</div></div><span style="font-size:12px;font-weight:800;color:var(--gr)">${N(s.total)}</span></div>`).join('')}
+    </div>` : `<div class="card"><div class="empty" style="padding:20px"><div class="ei">🛒</div><div class="et">No sales today</div><div class="es">Tap New Sale to begin</div></div></div>`}
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+//  PRODUCTS — Hierarchical Tree + Search
+// ═══════════════════════════════════════════════════
+function rProd() {
+  const tree = {};
+  D.products.forEach(p => {
+    if (!tree[p.cat]) tree[p.cat] = { subs:{} };
+    if (!tree[p.cat].subs[p.sub]) tree[p.cat].subs[p.sub] = { sub2s:{} };
+    if (p.sub2) tree[p.cat].subs[p.sub].sub2s[p.sub2] = true;
+  });
+  const cats = Object.keys(tree);
+  const filtered = getFilteredProds();
+
+  let treeHtml = '';
+  // All Products
+  treeHtml += `<div class="main-cat${!pF.main?' active':''}" onclick="pF.main='';pF.sub='';pF.sub2='';rProd()">
+    <div class="main-cat-lbl"><span>📋</span><span>All Products</span></div>
+    <span class="main-cat-cnt">${D.products.length}</span>
+  </div>`;
+  cats.forEach(cat => {
+    const active = pF.main === cat;
+    const cnt = D.products.filter(p=>p.cat===cat).length;
+    const subs = Object.keys(tree[cat].subs);
+    treeHtml += `<div class="main-cat${active?' active':''}" onclick="toggleCat('${cat}')">
+      <div class="main-cat-lbl"><span>${catEmo(cat)}</span><span>${cat}</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><span class="main-cat-cnt">${cnt}</span><span style="font-size:12px;color:var(--txt3);transition:transform .2s;display:inline-block;${active?'transform:rotate(90deg)':''}">›</span></div>
+    </div>`;
+    if (active) {
+      treeHtml += '<div class="sub-cats">';
+      treeHtml += `<div class="sub-cat${!pF.sub?' active':''}" onclick="pF.sub='';pF.sub2='';rProd()">All ${cat} <span style="float:right;font-size:10px">${cnt}</span></div>`;
+      subs.forEach(sub => {
+        const subActive = pF.sub === sub;
+        const subCnt = D.products.filter(p=>p.cat===cat&&p.sub===sub).length;
+        const sub2s = Object.keys(tree[cat].subs[sub].sub2s);
+        treeHtml += `<div class="sub-cat${subActive?' active':''}" onclick="pF.sub='${sub}';pF.sub2='';rProd()">${sub} <span style="float:right;font-size:10px">${subCnt}</span></div>`;
+        if (subActive && sub2s.length) {
+          sub2s.forEach(s2 => {
+            treeHtml += `<div class="sub-cat${pF.sub2===s2?' active':''}" style="margin-left:12px;font-size:11px" onclick="pF.sub2='${s2}';rProd()">└ ${s2} <span style="float:right;font-size:10px">${D.products.filter(p=>p.cat===cat&&p.sub===sub&&p.sub2===s2).length}</span></div>`;
+          });
+        }
+      });
+      treeHtml += '</div>';
+    }
+  });
+
+  document.getElementById('pg-products').innerHTML = `
+    <div class="shdr" style="margin-bottom:13px">
+      <div><div class="pg-t">Products</div><div class="pg-s">${D.products.length} items in catalogue</div></div>
+      <div style="display:flex;gap:5px">
+        <button class="btn bs bsm" onclick="openScan()">📷</button>
+        <button class="btn bp bsm" onclick="oAddProd()">+ Add</button>
+      </div>
+    </div>
+    <div class="srch">
+      <span style="font-size:13px;color:var(--txt3)">🔍</span>
+      <input class="srch-in" type="text" placeholder="Search name, category…" value="${pF.search}" oninput="pF.search=this.value;rProd()">
+      ${pF.search ? '<span onclick="pF.search=\'\';rProd()" style="cursor:pointer;color:var(--txt3);font-size:13px">✕</span>' : ''}
+    </div>
+    ${pF.search ? `
+      <div style="font-size:10px;color:var(--txt3);margin-bottom:8px;font-weight:700">${filtered.length} result${filtered.length!==1?'s':''} for "${pF.search}"</div>
+      ${renderProdList(filtered)}
+    ` : `
+      <div class="cat-tree">${treeHtml}</div>
+      <div class="slbl">${pF.sub2?pF.sub2:pF.sub?pF.sub:pF.main?pF.main:'All Products'} (${filtered.length})</div>
+      ${renderProdList(filtered)}
+    `}
+  `;
+}
+
+function toggleCat(cat) {
+  if (pF.main === cat) { pF.main = ''; pF.sub = ''; pF.sub2 = ''; }
+  else { pF.main = cat; pF.sub = ''; pF.sub2 = ''; }
+  rProd();
+}
+
+function getFilteredProds() {
+  return D.products.filter(p => {
+    if (pF.search) {
+      const q = pF.search.toLowerCase();
+      return p.name.toLowerCase().includes(q) || (p.sub||'').toLowerCase().includes(q) || p.cat.toLowerCase().includes(q) || (p.sub2||'').toLowerCase().includes(q);
+    }
+    if (pF.main && p.cat !== pF.main) return false;
+    if (pF.sub && p.sub !== pF.sub) return false;
+    if (pF.sub2 && p.sub2 !== pF.sub2) return false;
+    return true;
+  });
+}
+
+function renderProdList(list) {
+  if (!list.length) return '<div class="empty"><div class="ei">📦</div><div class="et">No products found</div></div>';
+  return list.map(p => {
+    const stk = p.stock || 0;
+    const sc = stk <= 0 ? 'stk-z' : stk <= 5 ? 'stk-lo' : 'stk-ok';
+    const c = getBuyCost(p);
+    const hasPhoto = !!getPhoto(p.id);
+    return `<div class="pi${stk <= (p.lowAlert||5) && stk > 0 ? ' pi-lo' : stk <= 0 ? ' pi-lo' : ''}">
+      <div style="cursor:pointer" onclick="triggerPhotoCapture('${p.id}')">${hasPhoto ? `<img src="${getPhoto(p.id)}" class="prod-photo" alt="">` : `<div class="photo-placeholder">${p.emo||'📦'}</div>`}</div>
+      <div class="pi-inf">
+        <div class="pi-nm">${p.name}</div>
+        <div class="pi-mt">${p.sub2?p.sub2+' · ':''}${p.sub}${isAdmin()?' · Cost ₦'+c.toFixed(0)+'/unit':''}</div>
+        <div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">
+          ${(p.pkgs||[]).map(pk=>`<span class="bdg bg">${pk.t}:${N(pk.p)}</span>`).join('')}
+          <span class="${sc}">Stk:${stk}</span>
+        </div>
+      </div>
+      <div class="pi-r">
+        <div style="display:flex;gap:4px">
+          <button class="ibtn" onclick="oStk('${p.id}')" title="Update Stock">📦</button>
+          <button class="ibtn" onclick="oEditProd('${p.id}')">✏️</button>
+          <button class="ibtn" style="color:var(--re)" onclick="confDel('prod','${p.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Barcode scanner
+function openScan() {
+  document.getElementById('m-prod-t').textContent = '📷 Barcode Scanner';
+  document.getElementById('m-prod-b').innerHTML = `
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:9px">Point camera at product barcode. Works on Chrome for Android.</p>
+    <div style="position:relative;border-radius:9px;overflow:hidden;margin-bottom:9px;background:#000;display:none" id="cwrap">
+      <video id="cvid" autoplay playsinline style="width:100%;max-height:190px;object-fit:cover;display:block"></video>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+        <div style="width:210px;height:80px;border:2px solid var(--gr);border-radius:7px;box-shadow:0 0 0 2000px rgba(0,0,0,.45)"></div>
+      </div>
+    </div>
+    <div id="sc-out" style="margin-bottom:9px"></div>
+    <div style="display:flex;gap:7px;margin-bottom:13px">
+      <button class="btn bp" style="flex:1" onclick="startCam()">▶ Start Camera</button>
+      <button class="btn bs" style="flex:1" onclick="stopCam()">⏹ Stop</button>
+    </div>
+    <div class="divv"></div>
+    <button class="btn bs bw" onclick="closeM('m-prod');oAddProd()">+ Add Product Manually</button>
+  `;
+  openM('m-prod');
+}
+async function startCam() {
+  try {
+    camStr = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } });
+    const v = document.getElementById('cvid');
+    const w = document.getElementById('cwrap');
+    if (v && w) { v.srcObject = camStr; w.style.display = 'block'; }
+    scanLoop();
+    toast('Camera started','ok');
+  } catch(e) { toast('Camera unavailable on this device','err'); }
+}
+async function scanLoop() {
+  if (!camStr) return;
+  const v = document.getElementById('cvid');
+  if (!v || !v.videoWidth) return setTimeout(scanLoop, 500);
+  if ('BarcodeDetector' in window) {
+    try {
+      const bd = new BarcodeDetector({ formats:['ean_13','ean_8','code_128','upc_a','qr_code'] });
+      const codes = await bd.detect(v);
+      if (codes.length) {
+        const c = codes[0].rawValue;
+        const el = document.getElementById('sc-out');
+        if (el) el.innerHTML = `<div style="background:var(--gr2);border:1px solid var(--grb);border-radius:7px;padding:8px;font-size:12px;color:var(--gr)">✅ Detected: <strong>${c}</strong></div>`;
+        stopCam(); return;
+      }
+    } catch(e) {}
+  }
+  if (camStr) setTimeout(scanLoop, 400);
+}
+function stopCam() {
+  if (camStr) { camStr.getTracks().forEach(t => t.stop()); camStr = null; }
+  const v = document.getElementById('cvid');
+  if (v) v.srcObject = null;
+}
+
+// Product form
+function oAddProd() { editPid = null; document.getElementById('m-prod-t').textContent = 'Add Product'; renderPF(null); openM('m-prod'); }
+function oEditProd(id) { editPid = id; renderPF(D.products.find(p => p.id === id)); document.getElementById('m-prod-t').textContent = 'Edit Product'; openM('m-prod'); }
+
+function renderPF(p) {
+  pkgRowIdx = 0;
+  const pkgs = p && p.pkgs && p.pkgs.length ? p.pkgs : [{ t:'Unit', q:1, p:0 }];
+  document.getElementById('m-prod-b').innerHTML = `
+    <div class="r2">
+      <div class="fg"><label class="fl">Product Name</label><input class="fi" type="text" id="pf-n" placeholder="e.g. Coca-Cola 30cl" value="${p?p.name:''}"></div>
+      <div class="fg"><label class="fl">Icon (Emoji)</label><input class="fi" type="text" id="pf-e" placeholder="📦" value="${p?p.emo:'📦'}" maxlength="2"></div>
+    </div>
+    <div class="r2">
+      <div class="fg"><label class="fl">Main Category</label>
+        <select class="fs" id="pf-c">
+          ${['Drinks','Provisions','Snacks','Toiletries','Household','Other'].map(c=>`<option${p&&p.cat===c?' selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Sub-Category</label><input class="fi" type="text" id="pf-s" placeholder="e.g. Soft Drinks" value="${p?p.sub||'':''}"></div>
+    </div>
+    <div class="fg"><label class="fl">Sub-Sub Category <span style="color:var(--txt3);font-size:9px">(e.g. Glass Bottle, PET)</span></label>
+      <input class="fi" type="text" id="pf-s2" placeholder="Optional" value="${p?p.sub2||'':''}">
+    </div>
+    <div class="slbl" style="margin-top:8px">PACKAGE TYPES & PRICES</div>
+    <p style="font-size:11px;color:var(--txt3);margin-bottom:9px">First row = main purchase package — unit cost is auto-calculated from it.</p>
+    <div id="pkgs-list">
+      ${pkgs.map((pk, i) => buildPkgRow(pk, i)).join('')}
+    </div>
+    <div style="display:flex;gap:5px;margin-bottom:12px;align-items:center">
+      <select class="fs" id="npk-t" style="flex:1.2;padding:8px;font-size:12px">
+        ${['Unit','Pack','Dozen','Half Carton','Carton','Crate','Half Crate','Box','Bag','Bundle','Gross'].map(t=>`<option>${t}</option>`).join('')}
+      </select>
+      <input class="fi" type="number" id="npk-q" placeholder="Qty" style="flex:.8;padding:8px;font-size:12px" min="1">
+      <input class="fi" type="number" id="npk-p" placeholder="Price ₦" style="flex:1;padding:8px;font-size:12px" min="0">
+      <button class="btn bp bsm" onclick="addPkgRow()">+</button>
+    </div>
+    <div id="pf-hint" style="margin-bottom:10px"></div>
+    <div class="r2">
+      <div class="fg"><label class="fl">Stock (units)</label><input class="fi" type="number" id="pf-stk" value="${p?p.stock||0:0}" min="0"></div>
+      <div class="fg"><label class="fl">Low-Stock Alert</label><input class="fi" type="number" id="pf-low" value="${p?p.lowAlert||5:5}" min="0"></div>
+    </div>
+    <div class="divv" style="margin:10px 0 10px"></div>
+    <div class="slbl" style="margin-bottom:7px">PRODUCT PHOTO</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:13px">
+      <div id="pf-photo-preview" style="flex-shrink:0">${p && getPhoto(p.id) ? `<img src="${getPhoto(p.id)}" style="width:64px;height:64px;border-radius:9px;object-fit:cover;border:1px solid var(--brd)">` : `<div style="width:64px;height:64px;border-radius:9px;background:var(--card2);border:1px dashed var(--brd2);display:flex;align-items:center;justify-content:center;font-size:28px">${p?p.emo||'📦':'📦'}</div>`}</div>
+      <div style="flex:1">
+        <div class="photo-btn-wrap" style="display:block;margin-bottom:7px">
+          <button class="btn bp bsm bw">📷 Snap / Upload Photo</button>
+          <input type="file" accept="image/*" capture="environment" onchange="handlePhotoInForm(this,'${p?p.id:'__new__'}')">
+        </div>
+        ${p && getPhoto(p.id) ? `<button class="btn bd bsm bw" onclick="deletePhoto('${p.id}');rProd()">🗑️ Remove Photo</button>` : ''}
+      </div>
+    </div>
+    <button class="btn bp bw" onclick="saveProd()">${p?'💾 Save Changes':'✅ Add Product'}</button>
+  `;
+  pkgRowIdx = pkgs.length;
+  updPFHint();
+}
+
+function buildPkgRow(pk, i) {
+  const cpu = pk.q > 0 ? (pk.p / pk.q).toFixed(2) : '—';
+  return `<div class="pkg-add-row" id="pkgrow-${i}">
+    <input class="fi" type="text" style="flex:1.2;padding:8px;font-size:12px" placeholder="Type" value="${pk.t}" id="pkt-${i}" oninput="updPFHint()">
+    <input class="fi" type="number" style="flex:.8;padding:8px;font-size:12px" placeholder="Qty" value="${pk.q}" id="pkq-${i}" oninput="updPFHint()">
+    <input class="fi" type="number" style="flex:1;padding:8px;font-size:12px" placeholder="₦" value="${pk.p}" id="pkp-${i}" oninput="updPFHint()">
+    ${i > 0 ? `<button class="ibtn" style="color:var(--re);padding:5px 7px;font-size:12px" onclick="rmPkgRow(${i})">✕</button>` : '<div style="width:28px"></div>'}
+  </div>`;
+}
+
+function rmPkgRow(i) {
+  const el = document.getElementById('pkgrow-' + i);
+  if (el) el.remove();
+}
+
+function updPFHint() {
+  const t = document.getElementById('pkt-0') ? document.getElementById('pkt-0').value : '';
+  const q = parseInt(document.getElementById('pkq-0') ? document.getElementById('pkq-0').value : '0') || 0;
+  const p = parseFloat(document.getElementById('pkp-0') ? document.getElementById('pkp-0').value : '0') || 0;
+  const h = document.getElementById('pf-hint');
+  if (!h) return;
+  if (p > 0 && q > 0) h.innerHTML = `<div style="background:var(--gr2);border:1px solid var(--grb);border-radius:7px;padding:8px;font-size:11px;color:var(--gr)">💡 Buy cost = <strong>₦${(p/q).toFixed(2)}/unit</strong> (${N(p)} ÷ ${q} units per ${t})</div>`;
+  else h.innerHTML = '';
+}
+
+function addPkgRow() {
+  const t = document.getElementById('npk-t').value;
+  const q = parseInt(document.getElementById('npk-q').value) || 0;
+  const p = parseFloat(document.getElementById('npk-p').value) || 0;
+  if (!q || !p) { toast('Enter quantity and price', 'err'); return; }
+  const i = pkgRowIdx++;
+  const container = document.getElementById('pkgs-list');
+  if (container) {
+    const div = document.createElement('div');
+    div.innerHTML = buildPkgRow({ t, q, p }, i);
+    container.appendChild(div.firstElementChild);
+  }
+  document.getElementById('npk-q').value = '';
+  document.getElementById('npk-p').value = '';
+}
+
+function saveProd() {
+  const nm = document.getElementById('pf-n').value.trim();
+  const cat = document.getElementById('pf-c').value;
+  const emo = document.getElementById('pf-e').value.trim() || '📦';
+  const sub = document.getElementById('pf-s').value.trim();
+  const sub2 = document.getElementById('pf-s2').value.trim();
+  const stock = parseInt(document.getElementById('pf-stk').value) || 0;
+  const lowAlert = parseInt(document.getElementById('pf-low').value) || 5;
+  if (!nm) { toast('Enter product name', 'err'); return; }
+  // Collect all package rows by scanning IDs
+  const pkgs = [];
+  document.querySelectorAll('[id^="pkt-"]').forEach(el => {
+    const i = el.id.split('-')[1];
+    const t = el.value.trim();
+    const q = parseInt(document.getElementById('pkq-' + i) ? document.getElementById('pkq-' + i).value : '0') || 0;
+    const p = parseFloat(document.getElementById('pkp-' + i) ? document.getElementById('pkp-' + i).value : '0') || 0;
+    if (t && q > 0 && p > 0) pkgs.push({ t, q, p });
+  });
+  if (!pkgs.length) { toast('Add at least one package type', 'err'); return; }
+  const now = Date.now();
+  if (editPid) {
+    const idx = D.products.findIndex(p => p.id === editPid);
+    if (idx !== -1) D.products[idx] = { ...D.products[idx], name:nm, cat, emo, sub, sub2, pkgs, pp:pkgs[0].p, stock, lowAlert, updatedAt:now };
+    toast('Product updated ✓', 'ok');
+  } else {
+    D.products.push({ id:uid(), name:nm, cat, emo, sub, sub2, pkgs, pp:pkgs[0].p, stock, lowAlert, updatedAt:now });
+    toast('Product added ✓', 'ok');
+  }
+  save();
+  // Apply pending photo from form if new product
+  if (!editPid && pendingFormPhoto) {
+    const newProd = D.products[D.products.length - 1];
+    if (newProd) { PHOTOS[newProd.id] = pendingFormPhoto; savePhotos(); }
+    pendingFormPhoto = null;
+  }
+  closeM('m-prod'); rProd();
+}
+
+function oStk(id) {
+  const p = D.products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('m-stk-b').innerHTML = `
+    <div style="background:var(--card2);border-radius:8px;padding:10px;margin-bottom:12px;display:flex;gap:9px;align-items:center">
+      <span style="font-size:22px">${p.emo}</span>
+      <div><div style="font-weight:700;font-size:13px">${p.name}</div>
+      <div style="font-size:10px;color:${(p.stock||0)<=(p.lowAlert||5)?'var(--re)':'var(--gr)'}">Current: <strong>${p.stock||0} units</strong></div></div>
+    </div>
+    <div class="fg"><label class="fl">Action</label>
+      <select class="fs" id="stk-a">
+        <option value="add">➕ Add Stock (new purchase)</option>
+        <option value="set">📌 Set Stock (manual count)</option>
+        <option value="rm">➖ Remove (damaged/loss)</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Quantity (units)</label>
+      <input class="fi" type="number" id="stk-q" placeholder="e.g. 48" min="0">
+    </div>
+    <button class="btn bp bw" onclick="saveStk('${p.id}')">Update Stock</button>
+  `;
+  openM('m-stk');
+}
+
+function saveStk(id) {
+  const q = parseInt(document.getElementById('stk-q').value) || 0;
+  const a = document.getElementById('stk-a').value;
+  const i = D.products.findIndex(p => p.id === id);
+  if (i === -1) return;
+  const cur = D.products[i].stock || 0;
+  D.products[i].stock = a === 'add' ? cur + q : a === 'set' ? q : Math.max(0, cur - q);
+  D.products[i].updatedAt = Date.now();
+  save(); closeM('m-stk'); toast(`Stock → ${D.products[i].stock} units`, 'ok'); rProd();
+}
+
+// ═══════════════════════════════════════════════════
+//  CART PAGE
+// ═══════════════════════════════════════════════════
+function rCart() {
+  const inCart = new Set(CART.items.map(i => i.pid));
+  const filtered = D.products.filter(p => {
+    const mc = cCatF === 'All' || p.cat === cCatF;
+    const ms = !cSearch || p.name.toLowerCase().includes(cSearch.toLowerCase()) || (p.sub||'').toLowerCase().includes(cSearch.toLowerCase()) || p.cat.toLowerCase().includes(cSearch.toLowerCase()) || (p.sub2||'').toLowerCase().includes(cSearch.toLowerCase());
+    return mc && ms;
+  });
+
+  document.getElementById('pg-cart').innerHTML = `
+    <div class="shdr" style="margin-bottom:13px">
+      <div><div class="pg-t">🛒 New Sale</div><div class="pg-s">${CART.items.length} item${CART.items.length!==1?'s':''} · ${N(cartTotal())}</div></div>
+      ${CART.items.length ? '<button class="btn bd bsm" onclick="clearCart()">Clear All</button>' : ''}
+    </div>
+
+    <div class="card" style="padding:11px;margin-bottom:10px">
+      <div class="slbl" style="margin-bottom:7px">Step 1 — Customer & Sale Type</div>
+      <div class="fg">
+        <div class="pr">
+          <div class="pill${CART.saleType==='retail'?' pg':''}" onclick="setCST('retail')">🛍️ Retail</div>
+          <div class="pill${CART.saleType==='wholesale'?' pgo':''}" onclick="setCST('wholesale')">📦 Wholesale</div>
+          <div class="pill${CART.saleType==='distribution'?' pb':''}" onclick="setCST('distribution')">🚚 Distrib.</div>
+          <div class="pill${CART.saleType==='credit'?' pp':''}" onclick="setCST('credit')">💳 Credit</div>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="fl">Customer ${CART.saleType==='credit'?'(required)':'(optional)'}</label>
+        <div style="display:flex;gap:6px">
+          <select class="fs" style="flex:1" id="cart-cust" onchange="CART.custId=this.value">
+            <option value="">— Walk-in / No Customer —</option>
+            ${D.customers.map(c=>`<option value="${c.id}"${CART.custId===c.id?' selected':''}>${c.name}${(c.balance||0)>0?' (owes '+N(c.balance)+')':''}</option>`).join('')}
+          </select>
+          <button class="btn bs bsm" onclick="oAddCust()">+ New</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:11px;margin-bottom:10px">
+      <div class="slbl" style="margin-bottom:7px">Step 2 — Search & Add Products</div>
+      <div class="srch" style="margin-bottom:8px">
+        <span style="font-size:13px;color:var(--txt3)">🔍</span>
+        <input class="srch-in" type="text" placeholder="Type product name, category…" value="${cSearch}" oninput="cSearch=this.value;rCart()">
+        ${cSearch ? '<span onclick="cSearch=\'\';rCart()" style="cursor:pointer;color:var(--txt3);font-size:12px">✕</span>' : ''}
+      </div>
+      <div class="tabs" style="margin-bottom:8px">
+        ${['All','Drinks','Provisions','Snacks','Toiletries','Household'].map(c=>`<div class="tab${cCatF===c?' on':''}" onclick="cCatF='${c}';rCart()">${c}</div>`).join('')}
+      </div>
+      <div style="max-height:260px;overflow-y:auto">
+        ${!filtered.length ? '<div style="text-align:center;padding:14px;color:var(--txt3);font-size:12px">No products found</div>'
+        : filtered.map(p => {
+            const inC = inCart.has(p.id);
+            return `<div class="pi" style="margin-bottom:5px">
+              <div class="pi-em">${p.emo||'📦'}</div>
+              <div class="pi-inf">
+                <div class="pi-nm">${p.name}</div>
+                <div class="pi-mt">${p.sub2?p.sub2+' · ':''}${p.sub} · Stk:${p.stock||0}</div>
+                <div style="margin-top:3px;display:flex;gap:3px;overflow:hidden">
+                  ${(p.pkgs||[]).slice(0,3).map(pk=>`<span style="font-size:9px;background:var(--card2);border:1px solid var(--brd2);border-radius:5px;padding:1px 5px;color:var(--txt2);white-space:nowrap">${pk.t}:${N(pk.p)}</span>`).join('')}
+                </div>
+              </div>
+              <div style="flex-shrink:0">
+                ${inC
+                  ? `<button class="btn bd bsm" onclick="removeFromCart('${p.id}')">✕ Remove</button>`
+                  : `<button class="btn bp bsm" onclick="oATC('${p.id}')">+ Add</button>`
+                }
+              </div>
+            </div>`;
+          }).join('')}
+      </div>
+    </div>
+
+    ${CART.items.length ? `
+    <div class="card" style="padding:11px;margin-bottom:10px">
+      <div class="slbl" style="margin-bottom:7px">🛒 Cart — ${CART.items.length} item${CART.items.length!==1?'s':''}</div>
+      ${CART.items.map(it=>`
+        <div class="cart-item">
+          <div style="font-size:20px;width:30px;flex-shrink:0;text-align:center">${it.emo||'📦'}</div>
+          <div class="ci-inf">
+            <div class="ci-nm">${it.name}</div>
+            <div class="ci-det">${it.qty} × ${it.pkgT} @ ${N(it.ppu)}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+            <div class="ci-tot">${N(it.subtotal)}</div>
+            <button class="ibtn" style="color:var(--re);padding:3px 6px;font-size:11px" onclick="removeFromCart('${it.pid}')">✕</button>
+          </div>
+        </div>`).join('')}
+      <div class="pbox" style="margin-top:7px">
+        <div class="pbl">Cart Total${CART.custId?' · '+D.customers.find(c=>c.id===CART.custId)?.name:''}</div>
+        <div class="pba">${N(cartTotal())}</div>
+        ${CART.saleType !== 'retail' ? `<div class="pbs">${CART.saleType.toUpperCase()} pricing</div>` : ''}
+      </div>
+      <div style="display:flex;gap:7px;margin-top:9px">
+        <button class="btn bp bw" style="padding:13px;font-size:13px" onclick="checkout(false)">✅ Confirm Sale</button>
+        <button class="btn bgo" style="padding:13px" onclick="checkout(true)">🧾 Receipt</button>
+      </div>
+    </div>` : ''}
+
+    <div class="divv" style="margin:18px 0 13px"></div>
+    <div class="pg-t" style="font-size:15px;margin-bottom:3px">🧮 Price Calculator</div>
+    <div class="pg-s" style="margin-bottom:10px">Auto-calculate unit cost, profit & margin</div>
+    <div class="card">
+      <div class="r2">
+        <div class="fg"><label class="fl">Package Price (₦)</label><input class="fi" type="number" id="c1" placeholder="3500" oninput="doCalc()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Units / Package</label><input class="fi" type="number" id="c2" placeholder="12" oninput="doCalc()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Sell Price/Unit (₦)</label><input class="fi" type="number" id="c3" placeholder="400" oninput="doCalc()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Qty to Sell</label><input class="fi" type="number" id="c4" value="1" oninput="doCalc()" style="padding:9px"></div>
+      </div>
+      <div id="cco"></div>
+    </div>
+  `;
+  updBadge();
+}
+
+function setCST(v) { CART.saleType = v; rCart(); }
+function clearCart() { CART = {custId:'', saleType:'retail', items:[]}; cSearch = ''; cCatF = 'All'; updBadge(); rCart(); }
+function removeFromCart(pid) { CART.items = CART.items.filter(i => i.pid !== pid); updBadge(); rCart(); }
+
+// Add to Cart modal
+function oATC(pid) {
+  const p = D.products.find(x => x.id === pid);
+  if (!p) return;
+  atcPid = pid;
+  atcPkgIdx = 0;
+  document.getElementById('m-atc-t').textContent = p.name;
+  const pkgs = p.pkgs || [];
+  const buyCost = getBuyCost(p);
+
+  document.getElementById('m-atc-b').innerHTML = `
+    <div style="background:var(--card2);border-radius:8px;padding:10px;margin-bottom:12px;display:flex;gap:9px;align-items:center">
+      <span style="font-size:24px">${p.emo}</span>
+      <div>
+        <div style="font-size:13px;font-weight:700">${p.name}</div>
+        <div style="font-size:10px;color:var(--txt3)">${p.sub2?p.sub2+' · ':''}${p.sub} · Buy cost ₦${buyCost.toFixed(0)}/unit · Stock:${p.stock||0}</div>
+      </div>
+    </div>
+    <label class="fl">Select Package Type</label>
+    <div class="pkg-row" id="atc-chips">
+      ${pkgs.map((pk,i)=>`
+        <div class="pkg-chip${i===0?' on':''}" onclick="selectPkg(${i})">
+          ${pk.t}<br><span style="font-size:10px;opacity:.8">${N(pk.p)}</span>
+        </div>`).join('')}
+    </div>
+    <div style="background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:11px;margin:10px 0">
+      <div class="r2" style="gap:8px">
+        <div><div style="font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px">Package</div><div style="font-size:13px;font-weight:700" id="bd-pk">${pkgs[0]?.t||'—'}</div></div>
+        <div><div style="font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px">Units in Pkg</div><div style="font-size:13px;font-weight:700" id="bd-uq">${pkgs[0]?.q||0}</div></div>
+        <div><div style="font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px">Pkg Price</div><div style="font-size:13px;font-weight:700;color:var(--go)" id="bd-pp">${N(pkgs[0]?.p||0)}</div></div>
+        <div><div style="font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px">Unit Buy Cost</div><div style="font-size:13px;font-weight:700;color:var(--bl)" id="bd-uc">${N(buyCost)}</div></div>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Selling Price <span style="color:var(--gr);font-size:9px">(auto-filled · edit if needed)</span></label>
+      <input class="fi" type="number" id="atc-sp" value="${pkgs[0]?.p||0}" oninput="updATCTotal()">
+    </div>
+    <div class="fg">
+      <label class="fl">Quantity</label>
+      <div class="qty-row">
+        <button class="qb" onclick="adjATCQ(-1)">−</button>
+        <input class="fi qi" type="number" id="atc-q" value="1" min="1" oninput="updATCTotal()">
+        <button class="qb" onclick="adjATCQ(1)">+</button>
+      </div>
+    </div>
+    <div id="atc-tot"></div>
+    <button class="btn bp bw" onclick="addToCart()">+ Add to Cart</button>
+  `;
+  updATCTotal();
+  openM('m-atc');
+}
+
+// FIX: selectPkg now uses module-level atcPkgIdx
+function selectPkg(idx) {
+  atcPkgIdx = idx;
+  const p = D.products.find(x => x.id === atcPid);
+  if (!p) return;
+  document.querySelectorAll('#atc-chips .pkg-chip').forEach((el, i) => {
+    el.classList.toggle('on', i === idx);
+  });
+  const pk = p.pkgs[idx];
+  if (pk) {
+    document.getElementById('bd-pk').textContent = pk.t;
+    document.getElementById('bd-uq').textContent = pk.q;
+    document.getElementById('bd-pp').textContent = N(pk.p);
+    document.getElementById('bd-uc').textContent = N((pk.p / pk.q).toFixed(2));
+    document.getElementById('atc-sp').value = pk.p;
+  }
+  updATCTotal();
+}
+
+function adjATCQ(d) {
+  const q = document.getElementById('atc-q');
+  if (!q) return;
+  q.value = Math.max(1, (parseInt(q.value) || 1) + d);
+  updATCTotal();
+}
+
+// FIX: correct profit calculation using module-level atcPkgIdx and atcPid
+function updATCTotal() {
+  const p = D.products.find(x => x.id === atcPid);
+  if (!p) return;
+  const sp = parseFloat(document.getElementById('atc-sp')?.value) || 0;
+  const q = parseInt(document.getElementById('atc-q')?.value) || 1;
+  const pk = p.pkgs[atcPkgIdx];
+  const pkgUnits = pk ? pk.q : 1;
+  const totalUnits = pkgUnits * q;
+  const totalPrice = sp * q;
+  const buyCost = getBuyCost(p);
+  // FIX: profit per unit sold = (selling price per pkg / units per pkg) - buy cost per unit
+  const sellPerUnit = pkgUnits > 0 ? sp / pkgUnits : sp;
+  const profitPerUnit = sellPerUnit - buyCost;
+  const totalProfit = profitPerUnit * totalUnits;
+  const el = document.getElementById('atc-tot');
+  if (el) el.innerHTML = `<div class="pbox">
+    <div class="pbl">${q} × ${pk?.t||'unit'} → ${totalUnits} unit${totalUnits!==1?'s':''}</div>
+    <div class="pba">${N(totalPrice)}</div>
+    ${totalProfit > 0 && isAdmin() ? `<div class="pbs">Est. profit: ${N(totalProfit.toFixed(0))}</div>` : ''}
+  </div>`;
+}
+
+function addToCart() {
+  const p = D.products.find(x => x.id === atcPid);
+  if (!p) return;
+  const q = parseInt(document.getElementById('atc-q')?.value) || 1;
+  const pk = p.pkgs[atcPkgIdx];
+  const sp = parseFloat(document.getElementById('atc-sp')?.value) || (pk ? pk.p : 0);
+  const subtotal = sp * q;
+  CART.items = CART.items.filter(i => i.pid !== atcPid);
+  CART.items.push({
+    pid: p.id, name: p.name, emo: p.emo||'📦',
+    qty: q, pkgT: pk ? pk.t : 'Unit', pkgQ: pk ? pk.q : 1,
+    ppu: sp, subtotal
+  });
+  updBadge();
+  closeM('m-atc');
+  toast(`${p.name} added ✓`, 'ok');
+  rCart();
+}
+
+function checkout(withRcpt) {
+  if (!CART.items.length) { toast('Cart is empty', 'err'); return; }
+  if (CART.saleType === 'credit' && !CART.custId) { toast('Select a customer for credit sale', 'err'); return; }
+  const dt = today(), tm = nowt(), batchId = 'B' + uid();
+  const rcptItems = [];
+  // FIX: capture total BEFORE clearing cart
+  const total = cartTotal();
+  const custName = D.customers.find(c => c.id === CART.custId)?.name || '';
+
+  CART.items.forEach(it => {
+    const units = it.pkgQ * it.qty;
+    const sale = {
+      id:uid(), batchId, date:dt, time:tm,
+      pid:it.pid, pname:it.name,
+      qty:it.qty, pkgT:it.pkgT, pkgQ:it.pkgQ, ppu:it.ppu,
+      total:it.subtotal, st:CART.saleType,
+      custId:CART.custId, custName
+    };
+    D.sales.push(sale);
+    rcptItems.push(sale);
+    const pi = D.products.findIndex(x => x.id === it.pid);
+    if (pi !== -1) D.products[pi].stock = Math.max(0, (D.products[pi].stock||0) - units);
+  });
+
+  if (CART.saleType === 'credit' && CART.custId) {
+    const ci = D.customers.findIndex(c => c.id === CART.custId);
+    if (ci !== -1) {
+      D.customers[ci].balance = (D.customers[ci].balance||0) + total;
+      D.customers[ci].transactions = D.customers[ci].transactions || [];
+      D.customers[ci].transactions.push({ id:uid(), date:dt, time:tm, desc:`Sale (${CART.items.length} items)`, qty:1, total, type:'debt' });
+    }
+  }
+
+  lastRcpt = { items:rcptItems, total, custId:CART.custId, custName, batchId, date:dt, time:tm, saleType:CART.saleType };
+  save();
+  clearCart();
+  toast(`Sale confirmed: ${N(total)} ✓`, 'ok');
+  if (withRcpt) showRcpt();
+}
+
+function doCalc() {
+  const pp = parseFloat(document.getElementById('c1')?.value) || 0;
+  const u = parseInt(document.getElementById('c2')?.value) || 0;
+  const sp = parseFloat(document.getElementById('c3')?.value) || 0;
+  const q = parseInt(document.getElementById('c4')?.value) || 1;
+  const o = document.getElementById('cco');
+  if (!o) return;
+  if (!pp || !u) { o.innerHTML = ''; return; }
+  const c = pp / u, pr = sp - c, mg = sp > 0 ? (pr / sp * 100) : 0;
+  o.innerHTML = `
+    <div class="sg" style="margin-top:7px">
+      <div class="st" style="padding:10px"><div class="stl">Cost / Unit</div><div class="stv cb" style="font-size:15px">${N(c.toFixed(2))}</div></div>
+      <div class="st" style="padding:10px;${pr>0?'':'border-color:rgba(239,68,68,.3)'}"><div class="stl">Profit / Unit</div><div class="stv" style="font-size:15px;color:${pr>0?'var(--gr)':'var(--re)'}">${N(pr.toFixed(2))}</div></div>
+    </div>
+    ${sp > 0 && isAdmin() ? `<div style="background:var(--card2);border-radius:8px;padding:10px;font-size:12px">
+      <div class="qr"><span style="color:var(--txt2)">Margin</span><span style="font-weight:700">${mg.toFixed(1)}%</span></div>
+      <div class="qr"><span style="color:var(--txt2)">Revenue × ${q}</span><span style="font-weight:700;color:var(--go)">${N(sp*q)}</span></div>
+      <div class="qr"><span style="color:var(--txt2)">Profit × ${q}</span><span style="font-weight:700;color:${pr>0?'var(--gr)':'var(--re)'}">${N(pr*q)}</span></div>
+    </div>` : ''}
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+//  RECEIPT
+// ═══════════════════════════════════════════════════
+function showRcpt() {
+  if (!lastRcpt) return;
+  const r = lastRcpt;
+  document.getElementById('m-rcpt-b').innerHTML = `
+    <div class="rcpt" id="rcpt-html">
+      <div class="rc"><div class="rt">${D.biz.toUpperCase()}</div><div class="rs2">KAGES Store Manager</div><div class="rs2">${fd(r.date)} · ${r.time}</div></div>
+      <div class="rl"></div>
+      <div class="rr"><span>Receipt:</span><span>#${r.batchId.slice(-6).toUpperCase()}</span></div>
+      <div class="rr"><span>Type:</span><span>${r.saleType.toUpperCase()}</span></div>
+      ${r.custName ? `<div class="rr"><span>Customer:</span><span>${r.custName}</span></div>` : ''}
+      <div class="rl"></div>
+      ${r.items.map(s=>`<div class="rr"><span>${s.pname}</span><span>${N(s.total)}</span></div><div style="font-size:9px;color:#777;padding-left:5px">${s.qty} × ${s.pkgT} @ ${N(s.ppu)}</div>`).join('')}
+      <div class="rl"></div>
+      <div class="rr" style="font-size:14px;font-weight:900"><span>TOTAL</span><span>${N(r.total)}</span></div>
+      <div class="rl"></div>
+      <div class="rc rs2">Thank you for your patronage! 🙏<br><br>By KAGE TECH HUB<br>📱 +2349131366099 (WhatsApp/Telegram)</div>
+    </div>
+  `;
+  openM('m-rcpt');
+}
+
+function shareWA() {
+  if (!lastRcpt) return;
+  const r = lastRcpt;
+  let msg = `*${D.biz}*\n🧾 #${r.batchId.slice(-6).toUpperCase()} · ${fd(r.date)} ${r.time}\n`;
+  if (r.custName) msg += `👤 ${r.custName}\n`;
+  msg += `Type: ${r.saleType.toUpperCase()}\n\n`;
+  r.items.forEach(s => { msg += `• ${s.pname}: ${N(s.total)}\n  (${s.qty} × ${s.pkgT} @ ${N(s.ppu)})\n`; });
+  msg += `\n*TOTAL: ${N(r.total)}*\n\nThank you! 🙏\n_By KAGE TECH HUB · +2349131366099_`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function printRcpt() {
+  const c = document.getElementById('rcpt-html');
+  if (!c) return;
+  const w = window.open('', '_blank', 'width=360,height=580');
+  w.document.write(`<html><head><style>body{font-family:'Courier New',monospace;font-size:11px;line-height:1.75;padding:12px;max-width:290px;margin:0 auto}.rc{text-align:center}.rl{border-top:1px dashed #999;margin:5px 0}.rr{display:flex;justify-content:space-between}.rt{font-size:14px;font-weight:900;letter-spacing:2px}.rs2{font-size:9px;color:#555}</style></head><body>${c.innerHTML}</body></html>`);
+  w.document.close();
+  w.print();
+}
+
+// ═══════════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════════
+function rHist() {
+  const grps = {};
+  D.sales.forEach(s => { if (!grps[s.date]) grps[s.date] = []; grps[s.date].push(s); });
+  const sorted = Object.keys(grps).sort((a,b) => b.localeCompare(a));
+  const totAll = D.sales.reduce((a,s) => a + s.total, 0);
+  const months = {};
+  D.sales.forEach(s => { const m = s.date.slice(0,7); months[m] = (months[m]||0) + s.total; });
+  const mSort = Object.keys(months).sort((a,b) => b.localeCompare(a)).slice(0,6);
+
+  document.getElementById('pg-history').innerHTML = `
+    <div class="shdr" style="margin-bottom:13px">
+      <div><div class="pg-t">History & Reports</div><div class="pg-s">${D.sales.length} total transactions</div></div>
+      <button class="btn bgo bsm" onclick="waReport()">📲 WA Report</button>
+    </div>
+    <div class="sg">
+      <div class="st"><div class="stl">All-Time Revenue</div><div class="stv cgo">${N(totAll)}</div><div class="stf">${D.sales.length} sales</div></div>
+      <div class="st"><div class="stl">Active Days</div><div class="stv cg">${sorted.length}</div></div>
+    </div>
+    ${isAdmin() ? `
+    <div class="card" style="padding:13px;margin-bottom:10px">
+      <div class="slbl" style="margin-bottom:6px">📊 P&amp;L SUMMARY (ALL TIME)</div>
+      <div class="qr"><span style="font-size:12px;color:var(--txt2)">Total Revenue</span><span style="font-size:13px;font-weight:800;color:var(--go)">${N(totAll)}</span></div>
+      <div class="qr"><span style="font-size:12px;color:var(--txt2)">Total Expenses</span><span style="font-size:13px;font-weight:800;color:var(--re)">−${N((D.expenses||[]).reduce((a,e)=>a+e.amount,0))}</span></div>
+      <div class="qr"><span style="font-size:12px;color:var(--txt2)">Recorded Losses</span><span style="font-size:13px;font-weight:800;color:var(--re)">−${N((D.losses||[]).reduce((a,l)=>a+l.totalLoss,0))}</span></div>
+      <div class="qr" style="border-top:2px solid var(--gr);margin-top:5px;padding-top:8px">
+        <span style="font-size:13px;font-weight:800">Net Profit (est.)</span>
+        <span style="font-size:15px;font-weight:900;color:var(--gr)">${N(totAll-(D.expenses||[]).reduce((a,e)=>a+e.amount,0)-(D.losses||[]).reduce((a,l)=>a+l.totalLoss,0))}</span>
+      </div>
+    </div>` : ''}
+    ${mSort.length > 1 ? `<div class="card"><div class="slbl">📊 Monthly Revenue</div>
+      ${mSort.map(m => {
+        const [yr, mn] = m.split('-');
+        const isNow = m === today().slice(0,7);
+        return `<div class="qr"><div style="font-size:12px;font-weight:600">${new Date(yr,+mn-1,1).toLocaleDateString('en-NG',{month:'long',year:'numeric'})}${isNow?` <span class="bdg bg" style="font-size:9px">Now</span>`:''}</div><span style="font-size:12px;font-weight:800;color:var(--go)">${N(months[m])}</span></div>`;
+      }).join('')}
+    </div>` : ''}
+    <div class="slbl">DAILY BREAKDOWN</div>
+    ${!sorted.length ? '<div class="empty"><div class="ei">📋</div><div class="et">No sales yet</div></div>'
+    : sorted.map(d => {
+        const dt = grps[d].reduce((a,s) => a + s.total, 0);
+        const isT = d === today();
+        return `<div style="background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 11px;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="showDay('${d}')">
+          <div>
+            <div style="font-size:12px;font-weight:700">${fd(d)} ${isT?`<span class="bdg bg" style="font-size:9px">Today</span>`:''}</div>
+            <div style="font-size:10px;color:var(--txt3)">${grps[d].length} transaction${grps[d].length>1?'s':''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px">
+            <div style="font-size:14px;font-weight:800;color:var(--go)">${N(dt)}</div>
+            <button class="ibtn" onclick="event.stopPropagation();exportWord('${d}')" title="Export to Word">📄</button>
+            <span style="color:var(--txt3)">›</span>
+          </div>
+        </div>`;
+      }).join('')}
+  `;
+}
+
+function showDay(date) {
+  const sales = D.sales.filter(s => s.date === date);
+  const total = sales.reduce((a,s) => a + s.total, 0);
+  document.getElementById('m-day-t').textContent = fd(date);
+  document.getElementById('m-day-b').innerHTML = `
+    <div class="pbox" style="margin-bottom:11px">
+      <div class="pbl">Day Total</div><div class="pba">${N(total)}</div>
+      <div class="pbs">${sales.length} transactions</div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:11px">
+      <button class="btn bgo bw bsm" onclick="exportWord('${date}')">📄 Export Word</button>
+      <button class="btn bs bsm" onclick="closeM('m-day')">Close</button>
+    </div>
+    ${sales.map(s=>`
+      <div class="sale-row">
+        <div class="sale-t">${(s.time||'--').split(':').join('<br>')}</div>
+        <div class="sale-inf">
+          <div class="sale-nm">${s.pname}</div>
+          <div class="sale-det">${s.qty} × ${s.pkgT} · ${N(s.ppu)} · ${s.st}${s.custName?' · '+s.custName:''}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+          <div class="sale-amt">${N(s.total)}</div>
+          <button onclick="delSale('${s.id}','${date}')" style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:11px">🗑️</button>
+        </div>
+      </div>`).join('')}
+  `;
+  openM('m-day');
+}
+
+function delSale(id, date) {
+  D.sales = D.sales.filter(s => s.id !== id);
+  save(); closeM('m-day'); toast('Sale deleted', 'ok'); rHist();
+}
+
+// Word Export
+function exportWord(date) {
+  const sales = D.sales.filter(s => s.date === date);
+  if (!sales.length) { toast('No sales on this date', 'err'); return; }
+  const total = sales.reduce((a,s) => a + s.total, 0);
+  const profit = sales.reduce((a, s) => {
+    const p = D.products.find(x => x.id === s.pid);
+    if (!p) return a;
+    const buyU = getBuyCost(p);
+    const sellU = s.pkgQ > 0 ? s.ppu / s.pkgQ : s.ppu;
+    return a + ((sellU - buyU) * s.qty * s.pkgQ);
+  }, 0);
+
+  const rows = sales.map(s => {
+    const p = D.products.find(x => x.id === s.pid);
+    return `<tr>
+      <td>${s.time||'--'}</td><td>${s.pname}</td>
+      <td>${p ? (p.sub||p.cat) : '—'}</td>
+      <td style="text-align:center">${s.qty}</td>
+      <td style="text-align:center">${s.pkgT}</td>
+      <td style="text-align:right">${N(s.ppu)}</td>
+      <td style="text-align:right;font-weight:bold">${N(s.total)}</td>
+      <td>${s.st.charAt(0).toUpperCase()+s.st.slice(1)}</td>
+      <td>${s.custName||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><style>
+body{font-family:Arial,sans-serif;font-size:11pt}
+h1{font-size:17pt;color:#0D9748;margin-bottom:3pt}
+h2{font-size:12pt;color:#333;margin-bottom:5pt}
+table{width:100%;border-collapse:collapse;margin-top:9pt}
+th{background:#0D9748;color:#fff;padding:6pt 5pt;font-size:9pt;text-align:left}
+td{padding:5pt;font-size:9pt;border-bottom:1pt solid #E2E8F0}
+tr:nth-child(even) td{background:#F7FAFC}
+.sum{margin-top:14pt;padding:9pt;background:#F0FDF4;border:1.5pt solid #0D9748;border-radius:4pt}
+.sr{display:flex;justify-content:space-between;padding:2pt 0;font-size:10pt}
+.foot{margin-top:20pt;padding-top:8pt;border-top:1pt solid #CBD5E0;font-size:8pt;color:#718096;text-align:center}
+.lbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:7pt;padding-bottom:7pt;border-bottom:2pt solid #0D9748}
+</style></head>
+<body>
+<div class="lbar">
+  <div><div style="font-size:20pt;font-weight:900;color:#0D9748;letter-spacing:2px">KAGES</div><div style="font-size:8pt;color:#718096">Store Manager · By KAGE TECH HUB</div></div>
+  <div style="text-align:right;font-size:9pt;color:#718096"><div style="font-weight:700;font-size:11pt;color:#333">${D.biz}</div><div>+2349131366099</div></div>
+</div>
+<h1>Daily Sales Report</h1>
+<h2>${new Date(date+'T12:00:00').toLocaleDateString('en-NG',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h2>
+<table>
+  <thead><tr><th>Time</th><th>Product</th><th>Category</th><th>Qty</th><th>Package</th><th>Unit Price</th><th>Total</th><th>Type</th><th>Customer</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="sum">
+  <div style="font-weight:700;font-size:11pt;margin-bottom:5pt">Summary</div>
+  <div class="sr"><span>Transactions</span><span><b>${sales.length}</b></span></div>
+  <div class="sr"><span>Total Revenue</span><span style="color:#0D9748;font-weight:700"><b>${N(total)}</b></span></div>
+  <div class="sr"><span>Estimated Profit</span><span style="color:#0D9748;font-weight:700"><b>${N(profit.toFixed(0))}</b></span></div>
+  <div class="sr"><span>Retail Sales</span><span>${N(sales.filter(s=>s.st==='retail').reduce((a,s)=>a+s.total,0))}</span></div>
+  <div class="sr"><span>Wholesale Sales</span><span>${N(sales.filter(s=>s.st==='wholesale').reduce((a,s)=>a+s.total,0))}</span></div>
+  <div class="sr"><span>Credit (unpaid)</span><span style="color:#EF4444">${N(sales.filter(s=>s.st==='credit').reduce((a,s)=>a+s.total,0))}</span></div>
+</div>
+<div class="foot">Generated by <b>KAGES Store Manager</b> · <b>By KAGE TECH HUB</b><br>WhatsApp &amp; Telegram: +2349131366099 · For support &amp; app customization</div>
+</body></html>`;
+
+  const b = new Blob(['\ufeff' + html], { type:'application/msword' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = `KAGES_Sales_${date}_${D.biz.replace(/\s+/g,'_')}.doc`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Word file exported ✓', 'ok');
+}
+
+function waReport() {
+  const ts = D.sales.filter(s => s.date === today());
+  const rev = todRev(), tgt = D.target||50000;
+  const pct = Math.min(100, Math.round((rev/tgt)*100));
+  const pm = {};
+  ts.forEach(s => { if (!pm[s.pname]) pm[s.pname] = 0; pm[s.pname] += s.total; });
+  const tops = Object.entries(pm).sort((a,b) => b[1]-a[1]).slice(0,5);
+  let msg = `📊 *${D.biz} — Daily Report*\n📅 ${fd(today())}\n\n💰 Revenue: *${N(rev)}*\n🎯 Target: ${N(tgt)} (${pct}%)\n📦 Transactions: ${ts.length}\n`;
+  if (debCnt()) msg += `💳 Outstanding Debt: ${N(totDebt())}\n`;
+  if (tops.length) { msg += `\n🏆 *Top Products:*\n`; tops.forEach(([n,v],i) => msg += `${i+1}. ${n}: ${N(v)}\n`); }
+  msg += `\n_KAGES Store Manager · KAGE TECH HUB_\n_+2349131366099_`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ═══════════════════════════════════════════════════
+//  MORE PAGE
+// ═══════════════════════════════════════════════════
+function rMore() {
+  const lu = new Date(D.ts).toLocaleString('en-NG');
+  const emgCount = (D.notes||[]).filter(n=>n.emergency).length;
+  const noteCount = (D.notes||[]).length;
+  const lossTotal = (D.losses||[]).reduce((a,l)=>a+l.totalLoss,0);
+
+  document.getElementById('pg-more').innerHTML = `
+    <div class="pg-t" style="margin-bottom:13px">More</div>
+
+    <div class="slbl">📝 NOTES</div>
+    <div class="tool-card" onclick="openNotes()">
+      <div class="tool-icon" style="background:${emgCount?'var(--re2)':'var(--gr2)'}">📝</div>
+      <div class="tool-inf">
+        <div class="tool-name">Notes & Reminders</div>
+        <div class="tool-desc">${noteCount} note${noteCount!==1?'s':''}${emgCount?' · '+emgCount+' 🚨 emergency':''}</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+
+    <div class="slbl">🧮 TOOLS</div>
+    <div class="tool-card" onclick="openTools('profit')">
+      <div class="tool-icon" style="background:var(--gr2)">💰</div>
+      <div class="tool-inf">
+        <div class="tool-name">Profit Calculator</div>
+        <div class="tool-desc">Unit cost · Margin % · Suggested price</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+    <div class="tool-card" onclick="openTools('loss')">
+      <div class="tool-icon" style="background:var(--re2)">📉</div>
+      <div class="tool-inf">
+        <div class="tool-name">Loss Calculator</div>
+        <div class="tool-desc">Record losses · Recovery tracking${lossTotal>0?' · Lost: '+N(lossTotal):''}</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+    <div class="tool-card" onclick="openTools('breakeven')">
+      <div class="tool-icon" style="background:var(--bl2)">⚖️</div>
+      <div class="tool-inf">
+        <div class="tool-name">Break-Even Calculator</div>
+        <div class="tool-desc">Units to sell to recover your capital</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+    <div class="tool-card" onclick="openExpenses()">
+      <div class="tool-icon" style="background:var(--re2)">💸</div>
+      <div class="tool-inf">
+        <div class="tool-name">Expense Tracker</div>
+        <div class="tool-desc">Rent, electricity, transport and more · ${N((D.expenses||[]).reduce((a,e)=>a+e.amount,0))} total</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+    <div class="tool-card" onclick="openCSV()">
+      <div class="tool-icon" style="background:var(--go2)">📊</div>
+      <div class="tool-inf">
+        <div class="tool-name">CSV Bulk Import/Export</div>
+        <div class="tool-desc">Download template · Fill in Excel · Import all at once</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+    <div class="tool-card" onclick="openTopSellers()">
+      <div class="tool-icon" style="background:var(--pu2)">🏆</div>
+      <div class="tool-inf">
+        <div class="tool-name">Top Sellers Report</div>
+        <div class="tool-desc">All-time best products by revenue</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+    <div class="tool-card" onclick="openPDFExport()">
+      <div class="tool-icon" style="background:rgba(239,68,68,.12)">📄</div>
+      <div class="tool-inf">
+        <div class="tool-name">PDF Price List Export</div>
+        <div class="tool-desc">Print or share professional price list — selling prices only</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+    <div class="tool-card" onclick="openSmartPricing()">
+      <div class="tool-icon" style="background:rgba(96,165,250,.12)">🧮</div>
+      <div class="tool-inf">
+        <div class="tool-name">Smart Pricing Calculator</div>
+        <div class="tool-desc">Transport + buy cost + competitor → ideal selling price</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+
+    <div class="slbl">CUSTOMERS & CREDIT</div>
+    <div class="card" style="padding:11px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div><div style="font-size:13px;font-weight:700">Credit Ledger</div>
+        <div style="font-size:10px;color:var(--txt3)">${debCnt()} customer${debCnt()!==1?'s':''} owe ${N(totDebt())}</div></div>
+        <div style="display:flex;gap:5px">
+          <div class="srch" style="padding:6px 9px;margin-bottom:0;width:120px">
+            <span style="font-size:11px;color:var(--txt3)">🔍</span>
+            <input class="srch-in" type="text" placeholder="Search…" id="cs-in" oninput="rCL()" style="font-size:11px">
+          </div>
+          <button class="btn bp bsm" onclick="oAddCust()">+ Add</button>
+        </div>
+      </div>
+      <div id="cust-list">${custListHtml('')}</div>
+    </div>
+
+    <div class="slbl">SETTINGS</div>
+    <div class="si" onclick="oBizEdit()"><div><div class="si-l">🏪 Business Name</div><div class="si-d">${D.biz}</div></div><span style="color:var(--txt3)">›</span></div>
+    <div class="si" onclick="oTgtEdit()"><div><div class="si-l">🎯 Daily Sales Target</div><div class="si-d">${N(D.target||50000)}</div></div><span style="color:var(--txt3)">›</span></div>
+    <div class="si" onclick="oPinEdit()"><div><div class="si-l">🔒 PIN Lock</div><div class="si-d">${D.pin?'PIN is set · tap to change':'Unlocked — no PIN set'}</div></div><span style="color:var(--txt3)">›</span></div>
+    <div class="si" onclick="openAdminSettings()">
+      <div>
+        <div class="si-l">👑 Admin / Staff Roles</div>
+        <div class="si-d">${D.role==='admin'?'Admin mode — full access':'Staff mode — limited access'}${D.adminPass?' · Password protected':''}</div>
+      </div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+    <div class="si" onclick="openThemePicker()">
+      <div><div class="si-l">🎨 App Theme</div><div class="si-d">Dark/Light mode · ${(D.accent||'green').charAt(0).toUpperCase()+(D.accent||'green').slice(1)} accent</div></div>
+      <span style="color:var(--txt3)">›</span>
+    </div>
+
+    <div class="divv"></div>
+    <div class="slbl">DATA & SMART SYNC</div>
+    <div class="si" onclick="doExport()"><div><div class="si-l">📤 Export Backup</div><div class="si-d">Download full data as .json file</div></div><span style="color:var(--txt3)">›</span></div>
+    <div class="si" onclick="document.getElementById('f-imp').click()"><div><div class="si-l">📥 Import & Smart Sync</div><div class="si-d">Merge from another device — newest edit wins</div></div><span style="color:var(--txt3)">›</span></div>
+    <div class="si" onclick="restoreDef()"><div><div class="si-l">🔄 Restore Default Products</div><div class="si-d">Re-add all ${DF.length} original products</div></div><span style="color:var(--txt3)">›</span></div>
+
+    <div class="divv"></div>
+    <div class="slbl">ADMIN & ROLES</div>
+    <div class="si" onclick="openAdminSettings()">
+      <div>
+        <div class="si-l">👑 Admin Settings</div>
+        <div class="si-d">${isAdmin()?'Admin mode · set password · generate staff app':'Staff mode · limited access'}</div>
+      </div>
+      <span style="${isAdmin()?'color:var(--go)':'color:var(--bl)'}">›</span>
+    </div>
+
+    <div class="divv"></div>
+    <div class="slbl">DANGER ZONE</div>
+    <div class="si" onclick="clearSales()" style="border-color:rgba(239,68,68,.22)">
+      <div><div class="si-l" style="color:var(--re)">🗑️ Clear All Sales</div><div class="si-d">Permanently delete all sales records</div></div>
+      <span style="color:var(--re)">›</span>
+    </div>
+
+    <div class="card" style="margin-top:3px">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--gr),#0D9748);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🏪</div>
+        <div><div style="font-size:14px;font-weight:800">KAGES Store Manager</div><div style="font-size:10px;color:var(--txt3)">v2.0 · Full Release</div></div>
+      </div>
+      <div class="divv" style="margin:0 0 9px"></div>
+      <div style="font-size:11px;color:var(--txt3)">
+        <div class="qr"><span>Products</span><span style="color:var(--txt);font-weight:700">${D.products.length}</span></div>
+        <div class="qr"><span>Sales Records</span><span style="color:var(--txt);font-weight:700">${D.sales.length}</span></div>
+        <div class="qr"><span>Customers</span><span style="color:var(--txt);font-weight:700">${D.customers.length}</span></div>
+        <div class="qr"><span>Notes</span><span style="color:var(--txt);font-weight:700">${noteCount}</span></div>
+        <div class="qr"><span>Expenses</span><span style="color:var(--txt);font-weight:700">${(D.expenses||[]).length}</span></div>
+        <div class="qr"><span>Loss Records</span><span style="color:var(--txt);font-weight:700">${(D.losses||[]).length}</span></div>
+        <div class="qr"><span>Role</span><span style="font-weight:700;color:${D.role==='admin'?'var(--go)':'var(--bl)'}">${D.role==='admin'?'👑 Admin':'👤 Staff'}</span></div>
+        <div class="qr"><span>Last Saved</span><span style="color:var(--txt);font-weight:700">${lu}</span></div>
+      </div>
+    </div>
+
+    <div class="bfoot">
+      <div class="bfoot-name">BY KAGE <em>TECH HUB</em></div>
+      <div class="bfoot-ct">📱 WhatsApp &amp; Telegram: <a class="wa-link" href="https://wa.me/2349131366099" target="_blank">+2349131366099</a></div>
+      <div style="font-size:10px;color:var(--txt3);margin-top:3px">Customer Support &amp; App Customization</div>
+    </div>
+  `;
+}
+
+function custListHtml(q) {
+  const list = D.customers.filter(c => !q || c.name.toLowerCase().includes(q.toLowerCase()) || (c.phone||'').includes(q));
+  if (!list.length) return '<div style="text-align:center;padding:14px;font-size:12px;color:var(--txt3)">No customers yet</div>';
+  return list.map(c => `
+    <div class="cu-row" onclick="showCust('${c.id}')">
+      <div class="cu-av">👤</div>
+      <div class="cu-inf">
+        <div class="cu-nm">${c.name}</div>
+        <div class="cu-mt">${c.phone||'No phone'} · ${(c.transactions||[]).length} txn${(c.transactions||[]).length!==1?'s':''}</div>
+      </div>
+      <div class="cu-bal" style="color:${(c.balance||0)>0?'var(--re)':'var(--gr)'}">${N(c.balance||0)}</div>
+    </div>`).join('');
+}
+
+function rCL() {
+  const q = document.getElementById('cs-in')?.value || '';
+  const el = document.getElementById('cust-list');
+  if (el) el.innerHTML = custListHtml(q);
+}
+
+// ── Customer CRUD ─────────────────────────────────
+function oAddCust() {
+  editCid = null;
+  document.getElementById('m-cust-t').textContent = 'Add Customer';
+  renderCustF(null);
+  openM('m-cust');
+}
+function oEditCust(id) {
+  editCid = id;
+  document.getElementById('m-cust-t').textContent = 'Edit Customer';
+  renderCustF(D.customers.find(c => c.id === id));
+  openM('m-cust');
+}
+function renderCustF(c) {
+  document.getElementById('m-cust-b').innerHTML = `
+    <div class="fg"><label class="fl">Full Name</label><input class="fi" type="text" id="cf-n" placeholder="Customer name" value="${c?c.name:''}"></div>
+    <div class="fg"><label class="fl">Phone Number</label><input class="fi" type="tel" id="cf-p" placeholder="08012345678" value="${c?c.phone||'':''}"></div>
+    <div class="fg"><label class="fl">Address (optional)</label><input class="fi" type="text" id="cf-a" placeholder="Street / area" value="${c?c.address||'':''}"></div>
+    ${c ? `<div class="fg"><label class="fl">Balance Owed (₦)</label><input class="fi" type="number" id="cf-b" value="${c.balance||0}" min="0"></div>` : ''}
+    <button class="btn bp bw" onclick="saveCust()">${c?'💾 Save Changes':'✅ Add Customer'}</button>
+  `;
+}
+function saveCust() {
+  const nm = document.getElementById('cf-n').value.trim();
+  const ph = document.getElementById('cf-p').value.trim();
+  const ad = document.getElementById('cf-a').value.trim();
+  if (!nm) { toast('Enter customer name', 'err'); return; }
+  if (editCid) {
+    const i = D.customers.findIndex(c => c.id === editCid);
+    const bal = parseFloat(document.getElementById('cf-b')?.value) || 0;
+    if (i !== -1) D.customers[i] = { ...D.customers[i], name:nm, phone:ph, address:ad, balance:bal, updatedAt:Date.now() };
+    toast('Customer updated ✓', 'ok');
+  } else {
+    D.customers.push({ id:uid(), name:nm, phone:ph, address:ad, balance:0, transactions:[], updatedAt:Date.now() });
+    toast('Customer added ✓', 'ok');
+  }
+  save(); closeM('m-cust'); rMore();
+  if (CUR === 'cart') rCart();
+}
+
+function showCust(id) {
+  const c = D.customers.find(x => x.id === id);
+  if (!c) return;
+  const txns = (c.transactions||[]).slice().reverse().slice(0,10);
+  document.getElementById('m-cdet-t').textContent = c.name;
+  document.getElementById('m-cdet-b').innerHTML = `
+    <div class="sg" style="margin-bottom:11px">
+      <div class="st" style="padding:10px"><div class="stl">Balance Owed</div><div class="stv" style="font-size:16px;color:${(c.balance||0)>0?'var(--re)':'var(--gr)'}">${N(c.balance||0)}</div></div>
+      <div class="st" style="padding:10px"><div class="stl">Transactions</div><div class="stv cb" style="font-size:16px">${(c.transactions||[]).length}</div></div>
+    </div>
+    ${c.phone ? `<button class="btn bgo bw bsm" style="margin-bottom:8px" onclick="window.open('https://wa.me/234${c.phone.replace(/^0/,'')}','_blank')">📲 Open WhatsApp Chat</button>` : ''}
+    ${(c.balance||0) > 0 ? `
+      <div class="fg"><label class="fl">Record Payment (₦)</label>
+        <div style="display:flex;gap:6px">
+          <input class="fi" type="number" id="pay-a" placeholder="Amount paid…" style="flex:1">
+          <button class="btn bp" onclick="recPay('${c.id}')">✅ Pay</button>
+        </div>
+      </div>` : `<div style="background:var(--gr2);border:1px solid var(--grb);border-radius:7px;padding:8px;text-align:center;font-size:11px;font-weight:700;color:var(--gr);margin-bottom:10px">✅ Account Clear — No Outstanding Debt</div>`}
+    <div class="divv" style="margin:7px 0 9px"></div>
+    <div class="slbl">RECENT TRANSACTIONS</div>
+    ${!txns.length ? '<div style="text-align:center;padding:10px;font-size:11px;color:var(--txt3)">No transactions yet</div>'
+    : txns.map(t=>`<div class="qr">
+        <div><div style="font-size:12px;font-weight:600">${t.desc}</div><div style="font-size:10px;color:var(--txt3)">${fd(t.date)} ${t.time||''}</div></div>
+        <span style="font-size:12px;font-weight:800;color:${t.type==='payment'?'var(--gr)':'var(--re)'}">${t.type==='payment'?'−':'+'} ${N(t.total)}</span>
+      </div>`).join('')}
+    <div style="display:flex;gap:7px;margin-top:11px">
+      <button class="btn bs" style="flex:1" onclick="closeM('m-cdet')">Close</button>
+      <button class="btn bs bsm" onclick="closeM('m-cdet');oEditCust('${c.id}')">✏️ Edit</button>
+      <button class="btn bd bsm" onclick="confDel('cust','${c.id}')">🗑️</button>
+    </div>
+  `;
+  openM('m-cdet');
+}
+
+function recPay(custId) {
+  const amt = parseFloat(document.getElementById('pay-a').value) || 0;
+  if (!amt) { toast('Enter payment amount', 'err'); return; }
+  const i = D.customers.findIndex(c => c.id === custId);
+  if (i === -1) return;
+  D.customers[i].balance = Math.max(0, (D.customers[i].balance||0) - amt);
+  D.customers[i].transactions = D.customers[i].transactions || [];
+  D.customers[i].transactions.push({ id:uid(), date:today(), time:nowt(), desc:'Payment received', qty:1, total:amt, type:'payment' });
+  D.customers[i].updatedAt = Date.now();
+  save(); closeM('m-cdet'); toast(`Payment ${N(amt)} recorded ✓`, 'ok'); rMore();
+}
+
+// ── Settings ─────────────────────────────────────
+function oBizEdit() {
+  document.getElementById('m-set-t').textContent = 'Business Name';
+  document.getElementById('m-set-b').innerHTML = `
+    <div class="fg"><label class="fl">Business Name</label><input class="fi" type="text" id="biz-i" value="${D.biz}" placeholder="Enter business name"></div>
+    <button class="btn bp bw" onclick="saveBiz()">Save</button>
+  `;
+  openM('m-set');
+}
+function saveBiz() {
+  const v = document.getElementById('biz-i').value.trim();
+  if (!v) { toast('Enter a name', 'err'); return; }
+  D.biz = v; save(); closeM('m-set'); rMore(); toast('Business name saved ✓', 'ok');
+}
+
+function oTgtEdit() {
+  document.getElementById('m-set-t').textContent = 'Daily Target';
+  document.getElementById('m-set-b').innerHTML = `
+    <div class="fg"><label class="fl">Daily Sales Target (₦)</label><input class="fi" type="number" id="tgt-i" value="${D.target||50000}" placeholder="50000" min="1"></div>
+    <button class="btn bp bw" onclick="saveTgt()">Save</button>
+  `;
+  openM('m-set');
+}
+function saveTgt() {
+  D.target = parseFloat(document.getElementById('tgt-i').value) || 50000;
+  save(); closeM('m-set'); rMore(); toast('Target updated ✓', 'ok');
+}
+
+function oPinEdit() {
+  document.getElementById('m-set-t').textContent = 'PIN Lock';
+  document.getElementById('m-set-b').innerHTML = `
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:12px">Set a 4-digit PIN to lock the app when opened. Leave blank to remove PIN lock.</p>
+    <div class="fg"><label class="fl">New PIN (4 digits)</label><input class="fi" type="password" id="pin-n" placeholder="Enter 4 digits" maxlength="4"></div>
+    <div class="fg"><label class="fl">Confirm PIN</label><input class="fi" type="password" id="pin-c" placeholder="Repeat PIN" maxlength="4"></div>
+    <button class="btn bp bw" onclick="savePin()">Save PIN</button>
+    ${D.pin ? '<button class="btn bd bw" style="margin-top:8px" onclick="removePin()">🗑️ Remove PIN Lock</button>' : ''}
+  `;
+  openM('m-set');
+}
+function savePin() {
+  const p1 = document.getElementById('pin-n').value.trim();
+  const p2 = document.getElementById('pin-c').value.trim();
+  if (p1.length !== 4) { toast('PIN must be exactly 4 digits', 'err'); return; }
+  if (p1 !== p2) { toast('PINs do not match', 'err'); return; }
+  D.pin = p1; save(); closeM('m-set'); rMore(); toast('PIN set ✓', 'ok');
+}
+function removePin() { D.pin = ''; save(); closeM('m-set'); rMore(); toast('PIN removed', 'ok'); }
+
+function toggleTheme() {
+  // Now opens the full theme picker instead of simple toggle
+  openThemePicker();
+}
+
+// ── Data ──────────────────────────────────────────
+function doExport() {
+  const b = new Blob([JSON.stringify(D, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = `kages_v4_backup_${today()}_${D.biz.replace(/\s+/g,'_')}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Backup exported ✓', 'ok');
+}
+
+function handleImport(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const imp = JSON.parse(e.target.result);
+      if (!imp.products || !imp.sales) { toast('Invalid backup file', 'err'); return; }
+      smartMerge(imp);
+    } catch(e) { toast('Could not read file', 'err'); }
+    input.value = '';
+  };
+  r.readAsText(f);
+}
+
+// Smart Sync — date-aware merge
+function smartMerge(imp) {
+  let np = 0, ns = 0, nc = 0, nu = 0;
+  // Products: newest updatedAt wins
+  const pm = {}; D.products.forEach(p => pm[p.id] = p);
+  (imp.products||[]).forEach(ip => {
+    if (!pm[ip.id]) { D.products.push({ ...ip, updatedAt:ip.updatedAt||0 }); np++; }
+    else {
+      const localT = pm[ip.id].updatedAt || 0;
+      const impT = ip.updatedAt || 0;
+      if (impT > localT) {
+        const i = D.products.findIndex(p => p.id === ip.id);
+        if (i !== -1) { D.products[i] = { ...D.products[i], ...ip }; nu++; }
+      }
+    }
+  });
+  // Sales: union by ID
+  const ss = new Set(D.sales.map(s => s.id));
+  (imp.sales||[]).forEach(s => { if (!ss.has(s.id)) { D.sales.push(s); ns++; } });
+  D.sales.sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+  // Customers: merge transactions + newest fields
+  const cm = {}; D.customers.forEach(c => cm[c.id] = c);
+  (imp.customers||[]).forEach(ic => {
+    if (!cm[ic.id]) { D.customers.push({ ...ic, transactions:ic.transactions||[] }); nc++; }
+    else {
+      const ci = D.customers.findIndex(c => c.id === ic.id);
+      if (ci === -1) return;
+      const tids = new Set((D.customers[ci].transactions||[]).map(t => t.id));
+      const newTxns = (ic.transactions||[]).filter(t => !tids.has(t.id));
+      D.customers[ci].transactions = [...(D.customers[ci].transactions||[]), ...newTxns].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+      // Recalculate balance from transaction history
+      const debits = D.customers[ci].transactions.filter(t=>t.type==='debt').reduce((a,t)=>a+t.total,0);
+      const credits = D.customers[ci].transactions.filter(t=>t.type==='payment').reduce((a,t)=>a+t.total,0);
+      D.customers[ci].balance = Math.max(0, debits - credits);
+      // Take newer metadata fields
+      const lt = D.customers[ci].updatedAt || 0, it = ic.updatedAt || 0;
+      if (it > lt) { D.customers[ci].name = ic.name; D.customers[ci].phone = ic.phone; D.customers[ci].address = ic.address; }
+    }
+  });
+  save();
+  render(CUR);
+  toast(`Synced ✓ — +${ns} sales, +${np} products, ${nu} updated, +${nc} customers`, 'ok');
+}
+
+function restoreDef() {
+  const ids = new Set(D.products.map(p => p.id));
+  let n = 0;
+  DF.forEach(p => { if (!ids.has(p.id)) { D.products.push({ ...p, stock:0, updatedAt:Date.now() }); n++; } });
+  save(); rMore(); toast(n ? `${n} default products restored` : 'All defaults already present', 'ok');
+}
+
+function clearSales() {
+  if (confirm('Delete ALL sales records permanently? Products and customers stay. This cannot be undone.')) {
+    D.sales = []; save(); rMore(); toast('Sales history cleared', 'ok');
+  }
+}
+
+// ── Delete Confirm ─────────────────────────────────
+function confDel(type, id) {
+  const labels = { prod:'this product', cust:'this customer' };
+  document.getElementById('del-msg').textContent = `Are you sure you want to delete ${labels[type]||'this item'}? This cannot be undone.`;
+  document.getElementById('del-ok').onclick = () => {
+    if (type === 'prod') { D.products = D.products.filter(p => p.id !== id); save(); closeM('m-del'); closeM('m-prod'); toast('Product deleted', 'ok'); rProd(); }
+    else if (type === 'cust') { D.customers = D.customers.filter(c => c.id !== id); save(); closeM('m-del'); closeM('m-cdet'); toast('Customer deleted', 'ok'); rMore(); }
+  };
+  openM('m-del');
+}
+
+// ═══════════════════════════════════════════════════
+//  SECTION 2 — PRODUCT PHOTOS
+// ═══════════════════════════════════════════════════
+// Photos stored in-memory + localStorage under key PHOTOS_KEY
+const PHOTOS_KEY = 'kages_photos';
+let PHOTOS = {};
+
+function loadPhotos() {
+  try { PHOTOS = JSON.parse(localStorage.getItem(PHOTOS_KEY) || '{}'); }
+  catch(e) { PHOTOS = {}; }
+}
+function savePhotos() {
+  try { localStorage.setItem(PHOTOS_KEY, JSON.stringify(PHOTOS)); }
+  catch(e) { toast('Storage full — delete some photos to free space', 'err'); }
+}
+function getPhoto(pid) { return PHOTOS[pid] || null; }
+
+function triggerPhotoCapture(pid) {
+  const inp = document.getElementById('f-photo');
+  if (!inp) return;
+  inp._pid = pid;
+  inp.click();
+}
+
+function handlePhoto(input) {
+  const pid = input._pid;
+  const file = input.files[0];
+  if (!file || !pid) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      // Compress to max 180×180
+      const MAX = 180;
+      const canvas = document.createElement('canvas');
+      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      PHOTOS[pid] = canvas.toDataURL('image/jpeg', 0.7);
+      savePhotos();
+      toast('Photo saved ✓', 'ok');
+      // Refresh current page
+      if (CUR === 'products') rProd();
+      if (CUR === 'cart') rCart();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+// Handle photo captured inside the product form (pid may be __new__ before save)
+let pendingFormPhoto = null; // { pid, dataUrl }
+
+function handlePhotoInForm(input, pid) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 180;
+      const canvas = document.createElement('canvas');
+      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      if (pid && pid !== '__new__') {
+        PHOTOS[pid] = dataUrl;
+        savePhotos();
+        toast('Photo saved ✓', 'ok');
+      } else {
+        pendingFormPhoto = dataUrl; // store for when product is saved
+        toast('Photo ready — save product to apply ✓', 'ok');
+      }
+      // Update preview inside the form
+      const prev = document.getElementById('pf-photo-preview');
+      if (prev) prev.innerHTML = `<img src="${dataUrl}" style="width:64px;height:64px;border-radius:9px;object-fit:cover;border:1px solid var(--brd)">`;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function deletePhoto(pid) {
+  delete PHOTOS[pid];
+  savePhotos();
+  toast('Photo removed', 'ok');
+  if (CUR === 'products') rProd();
+}
+
+// Helper: render photo or placeholder for a product
+function photoEl(pid, size) {
+  const ph = getPhoto(pid);
+  const s = size || 42;
+  if (ph) return `<img src="${ph}" style="width:${s}px;height:${s}px;border-radius:8px;object-fit:cover;border:1px solid var(--brd);flex-shrink:0" alt="product">`;
+  return `<div class="photo-placeholder" style="width:${s}px;height:${s}px" onclick="triggerPhotoCapture('${pid}')">📷</div>`;
+}
+
+// ═══════════════════════════════════════════════════
+//  SECTION 2 — CSV BULK IMPORT / EXPORT
+// ═══════════════════════════════════════════════════
+function openCSV() {
+  document.getElementById('m-csv-b').innerHTML = `
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:13px">
+      Export a template, fill it in Excel or Google Sheets, then import back — all products load at once.
+    </p>
+    <div class="slbl">EXPORT</div>
+    <button class="btn bp bw" style="margin-bottom:9px" onclick="exportCSVTemplate()">
+      📥 Download Empty Template (CSV)
+    </button>
+    <button class="btn bs bw" style="margin-bottom:14px" onclick="exportCSVFull()">
+      📤 Export All Current Products (CSV)
+    </button>
+    <div class="slbl">IMPORT</div>
+    <p style="font-size:11px;color:var(--txt3);margin-bottom:9px">
+      Select a filled CSV file. New products are added; existing ones (same name) are updated.
+    </p>
+    <div class="photo-btn-wrap">
+      <button class="btn bgo bw">📂 Select CSV File to Import</button>
+      <input type="file" accept=".csv,.txt" onchange="handleCSVFile(this)">
+    </div>
+    <div id="csv-result" style="margin-top:11px"></div>
+  `;
+  openM('m-csv');
+}
+
+function csvHeaders() {
+  return 'Product Name,Category,Sub-Category,Sub-Sub Category,Emoji,Pkg1 Type,Pkg1 Qty,Pkg1 Price,Pkg2 Type,Pkg2 Qty,Pkg2 Price,Pkg3 Type,Pkg3 Qty,Pkg3 Price,Stock Qty,Low Stock Alert';
+}
+
+function productToCSVRow(p) {
+  const pkgs = p.pkgs || [];
+  const get = (i, f) => pkgs[i] ? pkgs[i][f] : '';
+  const esc = v => String(v||'').includes(',') ? `"${v}"` : (v||'');
+  return [
+    esc(p.name), esc(p.cat), esc(p.sub), esc(p.sub2||''), p.emo||'📦',
+    esc(get(0,'t')), get(0,'q')||'', get(0,'p')||'',
+    esc(get(1,'t')), get(1,'q')||'', get(1,'p')||'',
+    esc(get(2,'t')), get(2,'q')||'', get(2,'p')||'',
+    p.stock||0, p.lowAlert||5
+  ].join(',');
+}
+
+function exportCSVTemplate() {
+  const sample = 'Coca-Cola Glass,Drinks,Soft Drinks,Glass Bottle,🥤,Crate,24,3600,Half Crate,12,1850,Unit,1,200,48,5';
+  const csv = csvHeaders() + '\n' + sample + '\n';
+  dlCSV(csv, 'KAGES_product_template.csv');
+  toast('Template downloaded ✓', 'ok');
+}
+
+function exportCSVFull() {
+  const rows = D.products.map(productToCSVRow);
+  const csv = csvHeaders() + '\n' + rows.join('\n') + '\n';
+  dlCSV(csv, `KAGES_products_${today()}.csv`);
+  toast(`${D.products.length} products exported ✓`, 'ok');
+}
+
+function dlCSV(csv, name) {
+  const b = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function handleCSVFile(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    parseCSVImport(e.target.result);
+    input.value = '';
+  };
+  r.readAsText(f, 'utf-8');
+}
+
+function handleCSV(input) { handleCSVFile(input); }
+
+function parseCSVImport(text) {
+  const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
+  if (lines.length < 2) { toast('CSV is empty', 'err'); return; }
+  // Skip header row
+  const rows = lines.slice(1);
+  let added = 0, updated = 0, skipped = 0;
+  rows.forEach(line => {
+    const cols = parseCSVLine(line);
+    if (cols.length < 8) { skipped++; return; }
+    const [name, cat, sub, sub2, emo, p1t, p1q, p1p, p2t, p2q, p2p, p3t, p3q, p3p, stock, lowAlert] = cols;
+    if (!name || !p1t || !p1q || !p1p) { skipped++; return; }
+    const pkgs = [];
+    if (p1t && +p1q > 0 && +p1p > 0) pkgs.push({ t:p1t, q:+p1q, p:+p1p });
+    if (p2t && +p2q > 0 && +p2p > 0) pkgs.push({ t:p2t, q:+p2q, p:+p2p });
+    if (p3t && +p3q > 0 && +p3p > 0) pkgs.push({ t:p3t, q:+p3q, p:+p3p });
+    const existing = D.products.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+    const obj = {
+      name: name.trim(), cat: cat||'Provisions', sub: sub||'', sub2: sub2||'',
+      emo: emo||'📦', pkgs, pp: pkgs[0]?.p || 0,
+      stock: +stock || 0, lowAlert: +lowAlert || 5, updatedAt: Date.now()
+    };
+    if (existing !== -1) { D.products[existing] = { ...D.products[existing], ...obj }; updated++; }
+    else { D.products.push({ ...obj, id: uid() }); added++; }
+  });
+  save();
+  const el = document.getElementById('csv-result');
+  if (el) el.innerHTML = `<div style="background:var(--gr2);border:1px solid var(--grb);border-radius:8px;padding:10px;font-size:12px;color:var(--gr)">
+    ✅ Done! Added: <strong>${added}</strong> · Updated: <strong>${updated}</strong> · Skipped: <strong>${skipped}</strong>
+  </div>`;
+  if (CUR === 'products') rProd();
+}
+
+function parseCSVLine(line) {
+  // Handle quoted fields
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+// ═══════════════════════════════════════════════════
+//  SECTION 2 — EXPENSE TRACKER
+// ═══════════════════════════════════════════════════
+function openExpenses() {
+  renderExpenseList();
+  openM('m-explist');
+}
+
+function renderExpenseList() {
+  const exps = (D.expenses || []).slice(0, 30);
+  const todayExps = (D.expenses || []).filter(e => e.date === today());
+  const totToday  = todayExps.reduce((a, e) => a + e.amount, 0);
+  const totAll    = (D.expenses || []).reduce((a, e) => a + e.amount, 0);
+
+  document.getElementById('m-explist-b').innerHTML = `
+    <div class="sg" style="margin-bottom:12px">
+      <div class="st" style="padding:10px"><div class="stl">Today's Expenses</div><div class="stv cr" style="font-size:16px">${N(totToday)}</div></div>
+      <div class="st" style="padding:10px"><div class="stl">All-Time Expenses</div><div class="stv cr" style="font-size:16px">${N(totAll)}</div></div>
+    </div>
+    <button class="btn bp bw" style="margin-bottom:12px" onclick="openAddExpense()">+ Add Expense</button>
+    ${!exps.length ? '<div class="empty" style="padding:22px"><div class="ei">💸</div><div class="et">No expenses recorded</div></div>'
+    : exps.map(e => `
+      <div class="exp-row">
+        <div class="exp-inf">
+          <div class="exp-nm">${e.desc}</div>
+          <div class="exp-mt">${fd(e.date)} ${e.time||''} · ${e.category||'General'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="exp-amt">−${N(e.amount)}</div>
+          <button onclick="deleteExpense('${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:12px">🗑️</button>
+        </div>
+      </div>`).join('')}
+  `;
+}
+
+function openAddExpense() {
+  const cats = ['Rent','Electricity','Transport','Supplier Payment','Staff Salary','Repairs','Packaging','Other'];
+  document.getElementById('m-exp-b').innerHTML = `
+    <div class="fg"><label class="fl">Description</label>
+      <input class="fi" type="text" id="ex-desc" placeholder="e.g. Rent, Electricity bill…">
+    </div>
+    <div class="r2">
+      <div class="fg"><label class="fl">Amount (₦)</label>
+        <input class="fi" type="number" id="ex-amt" placeholder="e.g. 5000" min="0">
+      </div>
+      <div class="fg"><label class="fl">Category</label>
+        <select class="fs" id="ex-cat">
+          ${cats.map(c => `<option>${c}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <button class="btn bp bw" onclick="saveExpense()">💾 Save Expense</button>
+  `;
+  openM('m-exp');
+}
+
+function saveExpense() {
+  const desc = document.getElementById('ex-desc').value.trim();
+  const amt  = parseFloat(document.getElementById('ex-amt').value) || 0;
+  const cat  = document.getElementById('ex-cat').value;
+  if (!desc) { toast('Enter a description', 'err'); return; }
+  if (!amt)  { toast('Enter an amount', 'err'); return; }
+  D.expenses = D.expenses || [];
+  D.expenses.unshift({ id:uid(), desc, amount:amt, category:cat, date:today(), time:nowt() });
+  save();
+  closeM('m-exp');
+  toast(`Expense ${N(amt)} recorded ✓`, 'ok');
+  renderExpenseList();
+  if (CUR === 'more') rMore();
+  if (CUR === 'history') rHist();
+}
+
+function deleteExpense(id) {
+  D.expenses = (D.expenses||[]).filter(e => e.id !== id);
+  save();
+  toast('Expense deleted', 'ok');
+  renderExpenseList();
+  if (CUR === 'more') rMore();
+}
+
+// ═══════════════════════════════════════════════════
+//  SECTION 3 — ADMIN / STAFF ROLES & SECURITY
+// ═══════════════════════════════════════════════════
+// Role: 'admin' = owner (sees profit, edits prices)
+//       'general' = staff (records sales only)
+
+function isAdmin() { return D.role === 'admin'; }
+
+function requireAdmin(callback) {
+  if (!D.adminPass) { callback(); return; }
+  document.getElementById('m-admin-t').textContent = '🔐 Admin Required';
+  document.getElementById('m-admin-b').innerHTML = `
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:12px">Enter admin password to continue.</p>
+    <div class="fg"><label class="fl">Admin Password</label>
+      <input class="fi" type="password" id="adm-pw-check" placeholder="Enter password…">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn bs" style="flex:1" onclick="closeM('m-admin')">Cancel</button>
+      <button class="btn bp" style="flex:1" onclick="checkAdminPW(${JSON.stringify(callback.toString())})">Confirm</button>
+    </div>
+  `;
+  openM('m-admin');
+}
+
+// Lightweight hash for admin password (SHA-like using djb2)
+function hashStr(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = (h * 33 ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+
+function checkAdminPW(cbStr) {
+  const pw = document.getElementById('adm-pw-check').value;
+  if (hashStr(pw) === D.adminPass) {
+    closeM('m-admin');
+    // Re-eval callback — stored as string
+    try { eval('(' + cbStr + ')')(); } catch(e) { console.error(e); }
+  } else {
+    document.getElementById('adm-pw-check').style.borderColor = 'var(--re)';
+    toast('Wrong password', 'err');
+  }
+}
+
+function openAdminSettings() {
+  document.getElementById('m-admin-t').textContent = '👑 Admin Settings';
+  const hasPass = !!D.adminPass;
+  const role = D.role || 'admin';
+  document.getElementById('m-admin-b').innerHTML = `
+    <div style="background:var(--go2);border:1px solid rgba(245,158,11,.3);border-radius:var(--rs);padding:11px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--go);margin-bottom:3px">Current Mode</div>
+      <div style="${role==='admin'?'color:var(--go)':'color:var(--bl)'};font-size:14px;font-weight:800">
+        ${role==='admin'?'👑 Admin (Owner)':'👤 General (Staff)'}
+      </div>
+      <div style="font-size:10px;color:var(--txt3);margin-top:3px">
+        ${role==='admin'?'Full access · sees profits · can edit prices':'Limited access · records sales only'}
+      </div>
+    </div>
+
+    <div class="slbl">SWITCH MODE</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn${role==='admin'?' bp':' bs'} bw" onclick="setRole('admin')">👑 Admin Mode</button>
+      <button class="btn${role==='general'?' bp':' bs'} bw" onclick="setRole('general')">👤 Staff Mode</button>
+    </div>
+
+    <div class="slbl">ADMIN PASSWORD</div>
+    <p style="font-size:11px;color:var(--txt3);margin-bottom:10px">
+      ${hasPass?'Password is SET. Price editing and profit reports require this password.':'No password set. Anyone can edit prices and see profits.'}
+    </p>
+    <div class="fg"><label class="fl">${hasPass?'New Password (leave blank to keep)':'Set Admin Password'}</label>
+      <input class="fi" type="password" id="adm-pw1" placeholder="Enter password…">
+    </div>
+    <div class="fg"><label class="fl">Confirm Password</label>
+      <input class="fi" type="password" id="adm-pw2" placeholder="Repeat password…">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn bp bw" onclick="saveAdminPass()">💾 Save Password</button>
+      ${hasPass?`<button class="btn bd bsm" onclick="clearAdminPass()">Remove</button>`:''}
+    </div>
+
+    <div class="divv"></div>
+    <div class="slbl">GENERATE STAFF APP</div>
+    <p style="font-size:11px;color:var(--txt3);margin-bottom:10px">
+      Creates a locked staff version: only sees price list, no profits or cost prices. Send via WhatsApp.
+    </p>
+    <button class="btn bgo bw" onclick="generateStaffApp()">📱 Generate Staff App File</button>
+  `;
+  openM('m-admin');
+}
+
+function setRole(r) {
+  D.role = r; save();
+  toast(`Switched to ${r === 'admin' ? 'Admin' : 'Staff'} mode ✓`, 'ok');
+  openAdminSettings();
+  if (CUR === 'more') rMore();
+}
+
+function saveAdminPass() {
+  const p1 = document.getElementById('adm-pw1').value;
+  const p2 = document.getElementById('adm-pw2').value;
+  if (!p1) { toast('Enter a password', 'err'); return; }
+  if (p1 !== p2) { toast('Passwords do not match', 'err'); return; }
+  D.adminPass = hashStr(p1);
+  save();
+  toast('Admin password set ✓', 'ok');
+  openAdminSettings();
+}
+
+function clearAdminPass() {
+  if (!confirm('Remove admin password? Anyone will be able to edit prices.')) return;
+  D.adminPass = ''; save();
+  toast('Admin password removed', 'ok');
+  openAdminSettings();
+}
+
+// Generate Staff App — a stripped-down version of the app
+function generateStaffApp() {
+  // Build product list with selling prices only (NO buy cost, NO profit)
+  const staffProds = D.products.map(p => ({
+    id: p.id, name: p.name, cat: p.cat, sub: p.sub, sub2: p.sub2||'',
+    emo: p.emo || '📦', stock: p.stock || 0,
+    // Staff only sees selling packages, not purchase cost
+    pkgs: (p.pkgs||[]).map(pk => ({ t: pk.t, q: pk.q, p: pk.p })),
+    lowAlert: p.lowAlert || 5
+  }));
+
+  const staffData = {
+    biz: D.biz,
+    products: staffProds,
+    sales: [],
+    customers: D.customers.map(c => ({ id:c.id, name:c.name, phone:c.phone||'', balance:c.balance||0, transactions:[] })),
+    role: 'general',
+    adminPass: '',
+    notes: (D.notes||[]).filter(n => !n.emergency), // staff gets regular notes only
+    losses: [], expenses: [], target: D.target || 50000,
+    pin: '', accent: D.accent || 'green', ts: Date.now()
+  };
+
+  // Inject the staff data into a minimal version of this app
+  // We reuse this file but with role=general preset
+  fetch(window.location.href)
+    .then(r => r.text())
+    .then(html => {
+      // Replace the default D with staff data
+      const staffInit = `const KEY = 'kages_staff';\nlet D = ${JSON.stringify(staffData)};`;
+      let staffHtml = html.replace(
+        /const KEY = 'kages_v4';\s*let D = \{[^;]+\};/,
+        staffInit
+      );
+      // Add a staff banner
+      staffHtml = staffHtml.replace(
+        '<div class="hname">KA<em>GES</em></div>',
+        '<div class="hname">KA<em>GES</em> <span style="font-size:10px;color:var(--bl);font-weight:700">STAFF</span></div>'
+      );
+      const b = new Blob([staffHtml], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = `KAGES_Staff_${D.biz.replace(/\s+/g,'_')}_${today()}.html`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Staff app generated ✓ — send via WhatsApp', 'ok');
+    })
+    .catch(() => {
+      // Fallback if fetch not available (file:// protocol)
+      toast('Open app from a web server to generate staff file', 'err');
+    });
+}
+
+// ═══════════════════════════════════════════════════
+//  SECTION 4 — TOP SELLERS & LOW STOCK BADGE
+// ═══════════════════════════════════════════════════
+function openTopSellers() {
+  const pm = {};
+  D.sales.forEach(s => {
+    if (!pm[s.pid]) pm[s.pid] = { name:s.pname, emo:'', units:0, revenue:0 };
+    pm[s.pid].revenue += s.total;
+    pm[s.pid].units   += s.qty * (s.pkgQ || 1);
+    const p = D.products.find(x => x.id === s.pid);
+    if (p) pm[s.pid].emo = p.emo || '📦';
+  });
+  const byRev  = Object.values(pm).sort((a,b) => b.revenue - a.revenue).slice(0, 15);
+  const maxRev = byRev[0]?.revenue || 1;
+
+  document.getElementById('m-sellers-b').innerHTML = `
+    <div class="sg" style="margin-bottom:12px">
+      <div class="st" style="padding:10px"><div class="stl">Products Tracked</div><div class="stv cg" style="font-size:16px">${Object.keys(pm).length}</div></div>
+      <div class="st" style="padding:10px"><div class="stl">Total Revenue</div><div class="stv cgo" style="font-size:16px">${N(D.sales.reduce((a,s)=>a+s.total,0))}</div></div>
+    </div>
+    <div class="slbl">BY REVENUE (ALL TIME)</div>
+    ${!byRev.length ? '<div class="empty" style="padding:22px"><div class="ei">📊</div><div class="et">No sales data yet</div></div>'
+    : byRev.map((p,i) => {
+        const rankCls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+        const pct = Math.round((p.revenue / maxRev) * 100);
+        return `<div class="seller-row">
+          <div class="seller-rank ${rankCls}">${i+1}</div>
+          <div style="font-size:18px;flex-shrink:0">${p.emo}</div>
+          <div class="seller-bar-wrap">
+            <div class="seller-name">${p.name}</div>
+            <div class="seller-bar-track"><div class="seller-bar-fill" style="width:${pct}%"></div></div>
+          </div>
+          <div class="seller-val">${N(p.revenue)}</div>
+        </div>`;
+      }).join('')}
+    <button class="btn bs bw" style="margin-top:13px" onclick="closeM('m-sellers')">Close</button>
+  `;
+  openM('m-sellers');
+}
+
+function updLowStockBadge() {
+  const low = D.products.filter(p => (p.stock||0) <= (p.lowAlert||5)).length;
+  // Badge on Products nav button
+  const navBtns = document.querySelectorAll('.nb');
+  if (navBtns[1]) { // Products = index 1
+    let badge = navBtns[1].querySelector('.nbadge');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'nbadge';
+      navBtns[1].appendChild(badge);
+    }
+    if (low > 0) {
+      badge.style.display = 'block';
+      badge.textContent = low;
+      badge.style.background = 'var(--go)';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  SECTION 1 — THEME SYSTEM
+// ═══════════════════════════════════════════════════
+const ACCENTS = [
+  { key:'green',  hex:'#22C55E', label:'Green'  },
+  { key:'blue',   hex:'#3B82F6', label:'Blue'   },
+  { key:'royal',  hex:'#1D4ED8', label:'Royal'  },
+  { key:'orange', hex:'#F97316', label:'Orange' },
+  { key:'purple', hex:'#8B5CF6', label:'Purple' },
+  { key:'pink',   hex:'#EC4899', label:'Pink'   },
+  { key:'red',    hex:'#EF4444', label:'Red'    },
+];
+
+function applyAccent(key) {
+  document.documentElement.setAttribute('data-accent', key === 'green' ? '' : key);
+  localStorage.setItem('kages_accent', key);
+  D.accent = key;
+}
+
+function openThemePicker() {
+  const curBase = document.documentElement.getAttribute('data-theme') || 'dark';
+  const curAccent = D.accent || 'green';
+  // Build accent swatches
+  const swatches = ACCENTS.map(a => `
+    <div class="theme-swatch${curAccent===a.key?' on':''}" onclick="setAccent('${a.key}');renderAccentGrid()">
+      <div class="swatch-dot" style="background:${a.hex}"></div>
+      <div class="swatch-lbl">${a.label}</div>
+    </div>`).join('');
+  document.getElementById('accent-grid').innerHTML = swatches;
+  // Highlight base mode buttons
+  document.getElementById('base-dark').style.borderColor  = curBase==='dark'  ? 'var(--gr)' : 'var(--brd)';
+  document.getElementById('base-light').style.borderColor = curBase==='light' ? 'var(--gr)' : 'var(--brd)';
+  openM('m-theme');
+}
+
+function renderAccentGrid() {
+  const curAccent = D.accent || 'green';
+  document.querySelectorAll('#accent-grid .theme-swatch').forEach((el, i) => {
+    el.classList.toggle('on', ACCENTS[i].key === curAccent);
+  });
+}
+
+function setAccent(key) {
+  applyAccent(key);
+  save();
+  // Refresh more page if open
+  if (CUR === 'more') rMore();
+}
+
+function setBase(mode) {
+  document.documentElement.setAttribute('data-theme', mode);
+  localStorage.setItem('kages_theme', mode);
+  document.getElementById('tbtn').textContent = mode === 'dark' ? '🌙' : '☀️';
+  document.getElementById('base-dark').style.borderColor  = mode==='dark'  ? 'var(--gr)' : 'var(--brd)';
+  document.getElementById('base-light').style.borderColor = mode==='light' ? 'var(--gr)' : 'var(--brd)';
+}
+
+// ═══════════════════════════════════════════════════
+//  SECTION 1 — NOTES & EMERGENCY NOTES
+// ═══════════════════════════════════════════════════
+let editNoteId = null;
+
+function openNotes() {
+  renderNotesList();
+  openM('m-notes');
+}
+
+function renderNotesList() {
+  const notes = D.notes || [];
+  const emg = notes.filter(n => n.emergency);
+  const reg = notes.filter(n => !n.emergency);
+
+  document.getElementById('m-notes-b').innerHTML = `
+    <div style="display:flex;gap:7px;margin-bottom:12px">
+      <button class="btn bd bsm" onclick="oAddNote(true)" style="flex:1">🚨 Emergency Note</button>
+      <button class="btn bp bsm" onclick="oAddNote(false)" style="flex:1">+ Regular Note</button>
+    </div>
+    ${emg.length ? `<div class="slbl" style="color:var(--re)">🚨 EMERGENCY (${emg.length})</div>
+      ${emg.map(n => noteCard(n)).join('')}` : ''}
+    ${reg.length ? `<div class="slbl">NOTES (${reg.length})</div>
+      ${reg.map(n => noteCard(n)).join('')}` : ''}
+    ${!notes.length ? `<div class="empty" style="padding:28px"><div class="ei">📝</div><div class="et">No notes yet</div><div class="es">Add reminders or emergency alerts</div></div>` : ''}
+  `;
+}
+
+function noteCard(n) {
+  return `<div class="note-item${n.emergency?' emg':''}" onclick="oEditNote('${n.id}')">
+    <div class="note-top">
+      <div class="note-title">${n.emergency?'🚨 ':''}${n.title}</div>
+      <button onclick="event.stopPropagation();deleteNote('${n.id}')" style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:13px;padding:0">🗑️</button>
+    </div>
+    <div class="note-body">${n.body||''}</div>
+    <div class="note-date">${fd(n.date)} ${n.time||''}</div>
+  </div>`;
+}
+
+function oAddNote(isEmergency) {
+  editNoteId = null;
+  document.getElementById('m-note-edit-t').textContent = isEmergency ? '🚨 Emergency Note' : '📝 Add Note';
+  document.getElementById('m-note-edit-b').innerHTML = `
+    <div class="fg"><label class="fl">Title</label>
+      <input class="fi" type="text" id="nt-title" placeholder="${isEmergency?'e.g. DO NOT sell on credit to Ade':'e.g. Restock Milo by Friday'}" value="">
+    </div>
+    <div class="fg"><label class="fl">Details (optional)</label>
+      <textarea class="fi" id="nt-body" rows="4" placeholder="Add more details here…" style="resize:none;height:90px"></textarea>
+    </div>
+    <input type="hidden" id="nt-emg" value="${isEmergency?'1':'0'}">
+    <button class="btn${isEmergency?' bd':' bp'} bw" onclick="saveNote()">
+      ${isEmergency?'🚨 Save Emergency Note':'💾 Save Note'}
+    </button>
+  `;
+  openM('m-note-edit');
+}
+
+function oEditNote(id) {
+  const n = (D.notes||[]).find(x => x.id === id);
+  if (!n) return;
+  editNoteId = id;
+  document.getElementById('m-note-edit-t').textContent = n.emergency ? '🚨 Edit Emergency' : '✏️ Edit Note';
+  document.getElementById('m-note-edit-b').innerHTML = `
+    <div class="fg"><label class="fl">Title</label>
+      <input class="fi" type="text" id="nt-title" value="${n.title.replace(/"/g,'&quot;')}">
+    </div>
+    <div class="fg"><label class="fl">Details</label>
+      <textarea class="fi" id="nt-body" rows="4" style="resize:none;height:90px">${n.body||''}</textarea>
+    </div>
+    <input type="hidden" id="nt-emg" value="${n.emergency?'1':'0'}">
+    <div style="display:flex;gap:7px">
+      <button class="btn bp bw" onclick="saveNote()">💾 Save Changes</button>
+      <button class="btn bd bsm" onclick="deleteNote('${n.id}')">🗑️</button>
+    </div>
+  `;
+  openM('m-note-edit');
+}
+
+function saveNote() {
+  const title = document.getElementById('nt-title').value.trim();
+  const body  = document.getElementById('nt-body').value.trim();
+  const emg   = document.getElementById('nt-emg').value === '1';
+  if (!title) { toast('Enter a title', 'err'); return; }
+
+  if (editNoteId) {
+    const i = (D.notes||[]).findIndex(n => n.id === editNoteId);
+    if (i !== -1) D.notes[i] = { ...D.notes[i], title, body, emergency:emg, updatedAt:Date.now() };
+    toast('Note updated ✓', 'ok');
+  } else {
+    D.notes = D.notes || [];
+    D.notes.unshift({ id:uid(), title, body, emergency:emg, date:today(), time:nowt(), updatedAt:Date.now() });
+    toast('Note saved ✓', 'ok');
+  }
+  save();
+  closeM('m-note-edit');
+  renderNotesList();
+  if (CUR === 'home') rHome();
+  if (CUR === 'more') rMore();
+}
+
+function deleteNote(id) {
+  if (!confirm('Delete this note?')) return;
+  D.notes = (D.notes||[]).filter(n => n.id !== id);
+  save();
+  renderNotesList();
+  if (CUR === 'home') rHome();
+  if (CUR === 'more') rMore();
+  toast('Note deleted', 'ok');
+}
+
+// ═══════════════════════════════════════════════════
+//  SECTION 1 — ADVANCED TOOLS (3 CALCULATORS)
+// ═══════════════════════════════════════════════════
+let toolTab = 'profit'; // 'profit' | 'loss' | 'breakeven'
+
+function openTools(tab) {
+  toolTab = tab || 'profit';
+  renderTools();
+  openM('m-tools');
+}
+
+function renderTools() {
+  const tabs = [
+    { key:'profit',    label:'💰 Profit'   },
+    { key:'loss',      label:'📉 Loss'     },
+    { key:'breakeven', label:'⚖️ Break-Even'}
+  ];
+  const tabHtml = `<div class="ctabs">
+    ${tabs.map(t=>`<div class="ctab${toolTab===t.key?' on':''}" onclick="toolTab='${t.key}';renderTools()">${t.label}</div>`).join('')}
+  </div>`;
+
+  let body = '';
+
+  if (toolTab === 'profit') {
+    body = `
+      <div class="slbl">Enter your buying & selling details</div>
+      <div class="r2">
+        <div class="fg"><label class="fl">Package Price (₦)</label><input class="fi" type="number" id="tc1" placeholder="3600" oninput="calcProfit()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Units / Package</label><input class="fi" type="number" id="tc2" placeholder="24" oninput="calcProfit()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Selling Price / Unit (₦)</label><input class="fi" type="number" id="tc3" placeholder="200" oninput="calcProfit()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Desired Margin %</label><input class="fi" type="number" id="tc4" placeholder="30" oninput="calcProfit()" style="padding:9px"></div>
+      </div>
+      <div id="tc-out"></div>
+    `;
+  } else if (toolTab === 'loss') {
+    const losses = (D.losses||[]).slice(0,8);
+    const lossTotal = (D.losses||[]).reduce((a,l)=>a+l.totalLoss,0);
+    body = `
+      <div class="slbl">Record a Loss</div>
+      <div class="fg"><label class="fl">Product / Item Name</label><input class="fi" type="text" id="tl1" placeholder="e.g. Indomie Chicken"></div>
+      <div class="r2">
+        <div class="fg"><label class="fl">Units Lost</label><input class="fi" type="number" id="tl2" placeholder="e.g. 10" oninput="calcLoss()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Buy Cost / Unit (₦)</label><input class="fi" type="number" id="tl3" placeholder="e.g. 120" oninput="calcLoss()" style="padding:9px"></div>
+      </div>
+      <div class="fg"><label class="fl">Reason (optional)</label><input class="fi" type="text" id="tl4" placeholder="e.g. Expired, Broken, Theft…"></div>
+      <div id="tl-out"></div>
+      <button class="btn bd bw" style="margin-top:10px" onclick="saveLoss()">📉 Record This Loss</button>
+      ${lossTotal > 0 ? `
+      <div class="divv"></div>
+      <div class="slbl">LOSS HISTORY</div>
+      <div style="background:var(--re2);border:1px solid rgba(239,68,68,.28);border-radius:var(--rs);padding:9px 11px;margin-bottom:10px;display:flex;justify-content:space-between">
+        <span style="font-size:11px;color:var(--re)">Total Losses Recorded</span>
+        <span style="font-size:13px;font-weight:800;color:var(--re)">${N(lossTotal)}</span>
+      </div>
+      ${losses.map(l=>`
+        <div class="loss-row">
+          <div class="loss-top">
+            <div class="loss-prod">${l.product}</div>
+            <div class="loss-amt">−${N(l.totalLoss)}</div>
+          </div>
+          <div class="loss-meta">${l.qty} units × ${N(l.unitCost)} · ${fd(l.date)}${l.reason?' · '+l.reason:''}</div>
+        </div>`).join('')}` : ''}
+    `;
+  } else if (toolTab === 'breakeven') {
+    body = `
+      <div class="slbl">How many units to recover your capital?</div>
+      <div class="r2">
+        <div class="fg"><label class="fl">Total Capital Spent (₦)</label><input class="fi" type="number" id="tb1" placeholder="e.g. 50000" oninput="calcBreakEven()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Selling Price / Unit (₦)</label><input class="fi" type="number" id="tb2" placeholder="e.g. 200" oninput="calcBreakEven()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Buy Cost / Unit (₦)</label><input class="fi" type="number" id="tb3" placeholder="e.g. 150" oninput="calcBreakEven()" style="padding:9px"></div>
+        <div class="fg"><label class="fl">Units in Stock</label><input class="fi" type="number" id="tb4" placeholder="e.g. 240" oninput="calcBreakEven()" style="padding:9px"></div>
+      </div>
+      <div id="tb-out"></div>
+    `;
+  }
+
+  document.getElementById('m-tools-b').innerHTML = tabHtml + body;
+}
+
+// Profit Calculator logic
+function calcProfit() {
+  const pp   = parseFloat(document.getElementById('tc1')?.value) || 0;
+  const u    = parseInt(document.getElementById('tc2')?.value)   || 0;
+  const sp   = parseFloat(document.getElementById('tc3')?.value) || 0;
+  const tgtM = parseFloat(document.getElementById('tc4')?.value) || 0;
+  const out  = document.getElementById('tc-out');
+  if (!out) return;
+  if (!pp || !u) { out.innerHTML = ''; return; }
+
+  const cpu   = pp / u;
+  const profit = sp - cpu;
+  const margin = sp > 0 ? ((profit / sp) * 100) : 0;
+  const suggestedPrice = tgtM > 0 ? cpu / (1 - tgtM / 100) : 0;
+
+  out.innerHTML = `
+    <div class="sg" style="margin-top:8px;margin-bottom:8px">
+      <div class="st" style="padding:10px"><div class="stl">Cost / Unit</div><div class="stv cb" style="font-size:16px">${N(cpu.toFixed(2))}</div></div>
+      <div class="st" style="padding:10px;${profit>0?'':'border-color:rgba(239,68,68,.3)'}"><div class="stl">Profit / Unit</div><div class="stv" style="font-size:16px;color:${profit>0?'var(--gr)':'var(--re)'}">${N(profit.toFixed(2))}</div></div>
+    </div>
+    <div class="res-box">
+      <div class="res-row"><span class="res-k">Profit Margin</span><span class="res-v" style="color:${margin>0?'var(--gr)':'var(--re)'}">${margin.toFixed(1)}%</span></div>
+      ${sp>0?`<div class="res-row"><span class="res-k">Revenue (full ${u} units)</span><span class="res-v cgo">${N(sp*u)}</span></div>
+      <div class="res-row"><span class="res-k">Profit (full ${u} units)</span><span class="res-v" style="color:${profit>0?'var(--gr)':'var(--re)'}">${N(profit*u)}</span></div>`:''}
+      ${tgtM>0&&suggestedPrice>0?`<div class="res-row"><span class="res-k">Price for ${tgtM}% margin</span><span class="res-v" style="color:var(--pu)"><strong>${N(suggestedPrice.toFixed(0))}</strong> / unit</span></div>`:''}
+    </div>
+  `;
+}
+
+// Loss Calculator logic
+function calcLoss() {
+  const qty  = parseInt(document.getElementById('tl2')?.value)   || 0;
+  const cost = parseFloat(document.getElementById('tl3')?.value) || 0;
+  const out  = document.getElementById('tl-out');
+  if (!out) return;
+  if (!qty || !cost) { out.innerHTML = ''; return; }
+  const total = qty * cost;
+  out.innerHTML = `<div class="pbox" style="background:var(--re2);border-color:rgba(239,68,68,.22)">
+    <div class="pbl" style="color:var(--re)">Total Loss</div>
+    <div class="pba" style="color:var(--re)">${N(total)}</div>
+    <div class="pbs" style="color:var(--re)">${qty} units × ${N(cost)}</div>
+  </div>`;
+}
+
+function saveLoss() {
+  const product = document.getElementById('tl1')?.value.trim();
+  const qty     = parseInt(document.getElementById('tl2')?.value)   || 0;
+  const unitCost= parseFloat(document.getElementById('tl3')?.value) || 0;
+  const reason  = document.getElementById('tl4')?.value.trim()  || '';
+  if (!product) { toast('Enter product name', 'err'); return; }
+  if (!qty || !unitCost) { toast('Enter units and cost', 'err'); return; }
+  D.losses = D.losses || [];
+  D.losses.unshift({ id:uid(), product, qty, unitCost, totalLoss:qty*unitCost, reason, date:today(), time:nowt() });
+  save();
+  toast(`Loss of ${N(qty*unitCost)} recorded`, 'ok');
+  renderTools();
+  if (CUR === 'more') rMore();
+}
+
+// Break-Even Calculator logic
+function calcBreakEven() {
+  const capital = parseFloat(document.getElementById('tb1')?.value) || 0;
+  const sp      = parseFloat(document.getElementById('tb2')?.value) || 0;
+  const cpu     = parseFloat(document.getElementById('tb3')?.value) || 0;
+  const stock   = parseInt(document.getElementById('tb4')?.value)   || 0;
+  const out     = document.getElementById('tb-out');
+  if (!out) return;
+  if (!capital || !sp || !cpu) { out.innerHTML = ''; return; }
+
+  const profitPerUnit = sp - cpu;
+  if (profitPerUnit <= 0) {
+    out.innerHTML = `<div style="background:var(--re2);border:1px solid rgba(239,68,68,.28);border-radius:var(--rs);padding:10px;margin-top:9px;font-size:12px;color:var(--re)">⚠️ Selling price must be higher than cost to break even.</div>`;
+    return;
+  }
+  const unitsNeeded  = Math.ceil(capital / profitPerUnit);
+  const revenueAtBE  = unitsNeeded * sp;
+  const stockCover   = stock > 0 ? (stock >= unitsNeeded ? `✅ Your stock of ${stock} units covers the break-even point.` : `⚠️ You need ${unitsNeeded-stock} more units after your current stock to break even.`) : '';
+
+  out.innerHTML = `
+    <div class="pbox">
+      <div class="pbl">Units Needed to Break Even</div>
+      <div class="pba">${unitsNeeded.toLocaleString()} units</div>
+      <div class="pbs">Revenue at break-even: ${N(revenueAtBE)}</div>
+    </div>
+    <div class="res-box">
+      <div class="res-row"><span class="res-k">Profit / Unit</span><span class="res-v cg">${N(profitPerUnit.toFixed(2))}</span></div>
+      <div class="res-row"><span class="res-k">Capital to Recover</span><span class="res-v">${N(capital)}</span></div>
+      <div class="res-row"><span class="res-k">Break-Even Revenue</span><span class="res-v cgo">${N(revenueAtBE)}</span></div>
+      ${stock>0?`<div class="res-row"><span class="res-k">Stock Coverage</span><span class="res-v" style="font-size:10px">${stockCover}</span></div>`:''}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+//  NEW FEATURE: PDF PRICE LIST EXPORT
+// ═══════════════════════════════════════════════════
+function openPDFExport() {
+  document.getElementById('m-pdf-b').innerHTML = `
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:14px">
+      Generates a professional price list with your store name and date.
+      Shows ONLY selling prices — no buy costs. Perfect for printing or sharing.
+    </p>
+    <div class="fg"><label class="fl">Store / Company Name</label>
+      <input class="fi" type="text" id="pdf-biz" placeholder="e.g. Ade General Stores" value="${D.biz}">
+    </div>
+    <div class="r2">
+      <div class="fg"><label class="fl">Prepared By</label>
+        <input class="fi" type="text" id="pdf-by" placeholder="Your name">
+      </div>
+      <div class="fg"><label class="fl">Valid Until (optional)</label>
+        <input class="fi" type="text" id="pdf-until" placeholder="e.g. 31 Dec 2025">
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Include Categories</label>
+      <div class="pr" id="pdf-cats" style="flex-wrap:wrap;gap:6px">
+        ${[...new Set(D.products.map(p=>p.cat))].map(c=>
+          `<div class="pill pg" data-cat="${c}" onclick="togglePDFCat(this)" style="flex:none;padding:7px 12px">${catEmo(c)} ${c}</div>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Include Discount Column?</label>
+      <div class="pr">
+        <div class="pill pg" id="pdf-disc-yes" onclick="setPDFDisc(true)">✅ Yes — show discount column</div>
+        <div class="pill" id="pdf-disc-no" onclick="setPDFDisc(false)">✕ No</div>
+      </div>
+    </div>
+    <div class="fg" id="pdf-disc-note" style="display:none">
+      <label class="fl">Discount Note (optional)</label>
+      <input class="fi" type="text" id="pdf-disc-text" placeholder="e.g. 5% off for orders above 5 cartons">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn bp bw" onclick="previewPDF()">👁️ Preview & Print</button>
+      <button class="btn bgo bw" onclick="sharePDFWhatsApp()">📲 Share via WA</button>
+    </div>
+  `;
+  // All cats selected by default
+  window._pdfCats = new Set(D.products.map(p=>p.cat));
+  window._pdfDisc = true;
+  openM('m-pdf');
+}
+
+function togglePDFCat(el) {
+  const cat = el.getAttribute('data-cat');
+  if (!window._pdfCats) window._pdfCats = new Set(D.products.map(p=>p.cat));
+  if (window._pdfCats.has(cat)) {
+    window._pdfCats.delete(cat);
+    el.classList.remove('pg');
+  } else {
+    window._pdfCats.add(cat);
+    el.classList.add('pg');
+  }
+}
+
+function setPDFDisc(val) {
+  window._pdfDisc = val;
+  document.getElementById('pdf-disc-yes').className = 'pill' + (val ? ' pg' : '');
+  document.getElementById('pdf-disc-no').className  = 'pill' + (!val ? ' pg' : '');
+  document.getElementById('pdf-disc-note').style.display = val ? 'block' : 'none';
+}
+
+function buildPDFHTML(bizName, preparedBy, validUntil, showDisc, discText) {
+  const cats = window._pdfCats || new Set(D.products.map(p=>p.cat));
+  const prods = D.products.filter(p => cats.has(p.cat));
+  // Group by category then sub-category
+  const grouped = {};
+  prods.forEach(p => {
+    const key = p.cat + (p.sub ? ' — ' + p.sub : '');
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(p);
+  });
+
+  let rows = '';
+  Object.entries(grouped).forEach(([grp, items]) => {
+    rows += `<tr class="pdf-cat-row"><td colspan="${showDisc?5:4}">${grp}</td></tr>`;
+    items.forEach((p, idx) => {
+      const pkgs   = p.pkgs || [];
+      const unitPkg = pkgs.find(pk => pk.t.toLowerCase() === 'unit') || pkgs[pkgs.length - 1];
+      const mainPkg = pkgs[0];
+      const unitPrice = unitPkg ? unitPkg.p : 0;
+      const packPrice = mainPkg && mainPkg !== unitPkg ? `${N(mainPkg.p)} / ${mainPkg.t}` : '—';
+      rows += `<tr>
+        <td>${idx+1}</td>
+        <td><strong>${p.emo||''} ${p.name}</strong>${p.sub2?' <span style="color:#888;font-size:10px">('+p.sub2+')</span>':''}</td>
+        <td style="text-align:right"><strong>${N(unitPrice)}</strong></td>
+        <td style="text-align:right">${packPrice}</td>
+        ${showDisc ? '<td style="text-align:center">—</td>' : ''}
+      </tr>`;
+    });
+  });
+
+  const dateStr = new Date().toLocaleDateString('en-NG', {day:'numeric',month:'long',year:'numeric'});
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #1A202C; padding: 20px; }
+  .pdf-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #0D9748; padding-bottom: 14px; margin-bottom: 16px; }
+  .pdf-biz { font-size: 22px; font-weight: 900; color: #0D9748; letter-spacing: 1px; }
+  .pdf-meta { font-size: 11px; color: #555; margin-top: 4px; }
+  .pdf-stamp { text-align: right; font-size: 11px; color: #555; }
+  .pdf-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #333; }
+  .pdf-kage { font-size: 10px; color: #0D9748; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th { background: #0D9748; color: #fff; padding: 8px 7px; text-align: left; }
+  td { padding: 6px 7px; border-bottom: 1px solid #E2E8F0; }
+  tr:nth-child(even) td { background: #F7FAFC; }
+  .cat-row td { background: #E8F5E9 !important; font-weight: 700; color: #0D9748; font-size: 11px; }
+  .pdf-footer { margin-top: 18px; padding-top: 10px; border-top: 1px solid #CBD5E0; font-size: 10px; color: #718096; display: flex; justify-content: space-between; }
+  .disc-note { background: #FFF8E1; border: 1px solid #F59E0B; border-radius: 4px; padding: 8px 10px; margin-bottom: 12px; font-size: 11px; color: #92400E; }
+  @media print { body { padding: 10px; } button { display: none; } }
+</style>
+</head>
+<body>
+<div class="pdf-header">
+  <div>
+    <div class="pdf-biz">${bizName || D.biz}</div>
+    <div class="pdf-title">📋 Official Price List</div>
+    <div class="pdf-meta">Date: ${dateStr}${validUntil ? ' · Valid until: ' + validUntil : ''}</div>
+    <div class="pdf-meta">Prepared by: ${preparedBy || 'Store Manager'}</div>
+  </div>
+  <div class="pdf-stamp">
+    <div style="font-size:13px;font-weight:700;color:#333">KAGES</div>
+    <div class="pdf-kage">Powered by KAGE TECH HUB</div>
+    <div style="font-size:10px;color:#555">+2349131366099</div>
+    <div style="margin-top:8px;font-size:11px;font-weight:700;color:#0D9748">${prods.length} Products Listed</div>
+  </div>
+</div>
+${showDisc && discText ? `<div class="disc-note">🏷️ Discount Policy: ${discText}</div>` : ''}
+<table>
+  <thead>
+    <tr>
+      <th style="width:30px">#</th>
+      <th>Product Name</th>
+      <th style="text-align:right;width:110px">Unit Price</th>
+      <th style="text-align:right;width:140px">Pack / Crate Price</th>
+      ${showDisc ? '<th style="text-align:center;width:90px">Discount</th>' : ''}
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="pdf-footer">
+  <div>Prices are in Nigerian Naira (₦) · Subject to change without notice</div>
+  <div>Generated by KAGES Store Manager · KAGE TECH HUB · +2349131366099</div>
+</div>
+</body>
+</html>`;
+}
+
+function previewPDF() {
+  const bizName  = document.getElementById('pdf-biz')?.value.trim()  || D.biz;
+  const prepBy   = document.getElementById('pdf-by')?.value.trim()   || '';
+  const validUntil = document.getElementById('pdf-until')?.value.trim() || '';
+  const showDisc = window._pdfDisc !== false;
+  const discText = document.getElementById('pdf-disc-text')?.value.trim() || '';
+
+  const html = buildPDFHTML(bizName, prepBy, validUntil, showDisc, discText);
+  const preview = document.getElementById('pdf-preview');
+  const content = document.getElementById('pdf-content');
+  if (!preview || !content) return;
+  content.innerHTML = html;
+  preview.style.display = 'block';
+  closeM('m-pdf');
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('hdr').style.display  = 'none';
+  document.getElementById('nav').style.display  = 'none';
+  document.getElementById('splash') && (document.getElementById('splash').style.display = 'none');
+}
+
+function closePDFPreview() {
+  const preview = document.getElementById('pdf-preview');
+  if (preview) preview.style.display = 'none';
+  document.getElementById('main').style.display = '';
+  document.getElementById('hdr').style.display  = '';
+  document.getElementById('nav').style.display  = '';
+}
+
+function sharePDFWhatsApp() {
+  const bizName = document.getElementById('pdf-biz')?.value.trim() || D.biz;
+  const dateStr = new Date().toLocaleDateString('en-NG', {day:'numeric',month:'long',year:'numeric'});
+  const cats    = window._pdfCats || new Set(D.products.map(p=>p.cat));
+  const prods   = D.products.filter(p => cats.has(p.cat));
+
+  // Build a WhatsApp-formatted text price list
+  const grouped = {};
+  prods.forEach(p => {
+    if (!grouped[p.cat]) grouped[p.cat] = [];
+    grouped[p.cat].push(p);
+  });
+
+  let msg = `📋 *${bizName.toUpperCase()} — PRICE LIST*\n📅 ${dateStr}\n\n`;
+  Object.entries(grouped).forEach(([cat, items]) => {
+    msg += `${catEmo(cat)} *${cat.toUpperCase()}*\n`;
+    items.forEach(p => {
+      const pkgs    = p.pkgs || [];
+      const unitPkg = pkgs.find(pk => pk.t.toLowerCase() === 'unit') || pkgs[pkgs.length-1];
+      const mainPkg = pkgs[0];
+      const unitLine = unitPkg ? `Unit: ${N(unitPkg.p)}` : '';
+      const packLine = mainPkg && mainPkg !== unitPkg ? ` | ${mainPkg.t}: ${N(mainPkg.p)}` : '';
+      msg += `• ${p.name}: ${unitLine}${packLine}\n`;
+    });
+    msg += '\n';
+  });
+  msg += `_By KAGE TECH HUB · +2349131366099_`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ═══════════════════════════════════════════════════
+//  NEW FEATURE: SMART PRICING CALCULATOR
+// ═══════════════════════════════════════════════════
+function openSmartPricing() {
+  document.getElementById('m-smartprice-b').innerHTML = `
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:14px">
+      Calculate the ideal selling price based on what you actually paid,
+      your transport cost, competitor pricing, and your profit target.
+    </p>
+
+    <div class="slbl">WHAT YOU PAID</div>
+    <div class="fg">
+      <label class="fl">Select Existing Product (or enter manually below)</label>
+      <select class="fs" id="sp-prod" onchange="spFillFromProduct()">
+        <option value="">— Pick a product to auto-fill —</option>
+        ${D.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="r2">
+      <div class="fg">
+        <label class="fl">Buy Cost / Unit (₦)</label>
+        <input class="fi" type="number" id="sp-buy" placeholder="e.g. 150" oninput="calcSmartPrice()" style="padding:9px">
+      </div>
+      <div class="fg">
+        <label class="fl">Units in this Batch</label>
+        <input class="fi" type="number" id="sp-units" placeholder="e.g. 240" value="1" oninput="calcSmartPrice()" style="padding:9px">
+      </div>
+    </div>
+
+    <div class="slbl">TRANSPORT COST</div>
+    <div class="r2">
+      <div class="fg">
+        <label class="fl">Total Transport Cost (₦)</label>
+        <input class="fi" type="number" id="sp-trans" placeholder="e.g. 2000" value="0" oninput="calcSmartPrice()" style="padding:9px">
+      </div>
+      <div class="fg">
+        <label class="fl">Other Costs (₦) <span style="font-size:9px;color:var(--txt3)">bags, labour…</span></label>
+        <input class="fi" type="number" id="sp-other" placeholder="e.g. 500" value="0" oninput="calcSmartPrice()" style="padding:9px">
+      </div>
+    </div>
+
+    <div class="slbl">COMPETITOR & TARGET</div>
+    <div class="r2">
+      <div class="fg">
+        <label class="fl">Competitor Price / Unit (₦) <span style="font-size:9px;color:var(--txt3)">optional</span></label>
+        <input class="fi" type="number" id="sp-comp" placeholder="Leave blank if unknown" oninput="calcSmartPrice()" style="padding:9px">
+      </div>
+      <div class="fg">
+        <label class="fl">Target Profit Margin (%)</label>
+        <input class="fi" type="number" id="sp-margin" placeholder="e.g. 20" value="20" oninput="calcSmartPrice()" style="padding:9px">
+      </div>
+    </div>
+
+    <div id="sp-result"></div>
+  `;
+  calcSmartPrice();
+  openM('m-smartprice');
+}
+
+function spFillFromProduct() {
+  const pid = document.getElementById('sp-prod').value;
+  if (!pid) return;
+  const p = D.products.find(x => x.id === pid);
+  if (!p) return;
+  const cpu = getBuyCost(p);
+  const totalUnits = p.pkgs?.[0]?.q || 1;
+  document.getElementById('sp-buy').value   = cpu.toFixed(2);
+  document.getElementById('sp-units').value = totalUnits;
+  calcSmartPrice();
+}
+
+function calcSmartPrice() {
+  const buyPerUnit  = parseFloat(document.getElementById('sp-buy')?.value)    || 0;
+  const units       = parseFloat(document.getElementById('sp-units')?.value)  || 1;
+  const transport   = parseFloat(document.getElementById('sp-trans')?.value)  || 0;
+  const other       = parseFloat(document.getElementById('sp-other')?.value)  || 0;
+  const compPrice   = parseFloat(document.getElementById('sp-comp')?.value)   || 0;
+  const targetMargin= parseFloat(document.getElementById('sp-margin')?.value) || 20;
+  const out = document.getElementById('sp-result');
+  if (!out) return;
+  if (!buyPerUnit) { out.innerHTML = ''; return; }
+
+  // True cost per unit = buy + transport share + other share
+  const transportPerUnit = units > 0 ? transport / units : 0;
+  const otherPerUnit     = units > 0 ? other / units : 0;
+  const trueCostPerUnit  = buyPerUnit + transportPerUnit + otherPerUnit;
+
+  // Recommended price based on target margin
+  // Selling Price = Cost / (1 - margin%)
+  const recommended  = trueCostPerUnit / (1 - (targetMargin / 100));
+  const breakEven    = trueCostPerUnit;  // minimum to not lose money
+  const profitPerUnit= recommended - trueCostPerUnit;
+
+  // Max discount: how much discount can you give and still break even?
+  const maxDiscPct   = recommended > 0 ? ((recommended - breakEven) / recommended * 100) : 0;
+  // Max discount to maintain at least 10% margin
+  const minSafe      = trueCostPerUnit / (1 - 0.10);
+  const safeDiscPct  = recommended > 0 ? ((recommended - minSafe) / recommended * 100) : 0;
+
+  // Competitor analysis
+  let compHtml = '';
+  if (compPrice > 0) {
+    const compMargin = ((compPrice - trueCostPerUnit) / compPrice * 100);
+    if (compPrice < breakEven) {
+      compHtml = `<div class="sp-danger">⚠️ Competitor sells at ${N(compPrice)} but your cost is ${N(trueCostPerUnit.toFixed(0))} — you <strong>cannot match that price profitably</strong> with this cost structure.</div>`;
+    } else if (compPrice < recommended) {
+      compHtml = `<div class="sp-warn">📊 Competitor: ${N(compPrice)} — you can match at ${N(compPrice)} and still make ${N((compPrice-trueCostPerUnit).toFixed(0))} profit/unit (${compMargin.toFixed(1)}% margin).</div>`;
+    } else {
+      compHtml = `<div style="background:var(--gr2);border:1px solid var(--grb);border-radius:var(--rs);padding:9px;margin:8px 0;font-size:11px;color:var(--gr)">✅ You can price BELOW competitor (${N(compPrice)}) at ${N(recommended.toFixed(0))} and still hit your ${targetMargin}% target.</div>`;
+    }
+  }
+
+  out.innerHTML = `
+    <div class="sp-result">
+      <div class="slbl" style="margin-bottom:6px">COST BREAKDOWN</div>
+      <div class="res-box" style="margin-top:0;margin-bottom:10px">
+        <div class="res-row"><span class="res-k">Buy Cost / Unit</span><span class="res-v">${N(buyPerUnit.toFixed(2))}</span></div>
+        <div class="res-row"><span class="res-k">Transport / Unit (÷ ${units} units)</span><span class="res-v">${N(transportPerUnit.toFixed(2))}</span></div>
+        <div class="res-row"><span class="res-k">Other Costs / Unit</span><span class="res-v">${N(otherPerUnit.toFixed(2))}</span></div>
+        <div class="res-row" style="border-top:2px solid var(--gr);padding-top:7px">
+          <span class="res-k" style="font-weight:700;color:var(--txt)">TRUE COST / UNIT</span>
+          <span class="res-v" style="font-size:14px;color:var(--bl)">${N(trueCostPerUnit.toFixed(2))}</span>
+        </div>
+      </div>
+
+      <div class="sp-rec">
+        <div class="sp-rec-lbl">Recommended Selling Price (${targetMargin}% margin)</div>
+        <div class="sp-rec-price">${N(recommended.toFixed(0))}</div>
+        <div class="sp-rec-sub">Profit: ${N(profitPerUnit.toFixed(0))} per unit</div>
+      </div>
+
+      ${compHtml}
+
+      <div class="res-box">
+        <div class="res-row"><span class="res-k">Break-Even Price (zero profit)</span><span class="res-v" style="color:var(--re)">${N(breakEven.toFixed(2))}</span></div>
+        <div class="res-row"><span class="res-k">Max Discount (from rec. price)</span><span class="res-v" style="color:var(--go)">${maxDiscPct.toFixed(1)}% (down to ${N(breakEven.toFixed(0))})</span></div>
+        <div class="res-row"><span class="res-k">Safe Discount (keeps 10% margin)</span><span class="res-v" style="color:var(--gr)">${Math.max(0,safeDiscPct).toFixed(1)}% (down to ${N(minSafe.toFixed(0))})</span></div>
+        <div class="res-row"><span class="res-k">Revenue if all ${units} units sold</span><span class="res-v cgo">${N((recommended*units).toFixed(0))}</span></div>
+        <div class="res-row"><span class="res-k">Total Profit if all sold</span><span class="res-v cg">${N((profitPerUnit*units).toFixed(0))}</span></div>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn bp bsm" onclick="applySmartPrice()">✅ Apply to Product</button>
+        <button class="btn bgo bsm" onclick="shareSmartPrice()">📲 Share Analysis</button>
+      </div>
+    </div>
+  `;
+  // Store results for apply/share
+  window._spResult = { recommended: recommended.toFixed(0), trueCost: trueCostPerUnit.toFixed(2), pid: document.getElementById('sp-prod')?.value };
+}
+
+function applySmartPrice() {
+  const res = window._spResult;
+  if (!res || !res.pid) { toast('Select a product first to apply price', 'err'); return; }
+  const i = D.products.findIndex(p => p.id === res.pid);
+  if (i === -1) return;
+  const p = D.products[i];
+  // Update the Unit package selling price
+  const unitIdx = (p.pkgs||[]).findIndex(pk => pk.t.toLowerCase() === 'unit');
+  if (unitIdx !== -1) {
+    D.products[i].pkgs[unitIdx].p = parseFloat(res.recommended);
+  } else {
+    // Update all package prices proportionally
+    if (p.pkgs && p.pkgs.length > 0) {
+      D.products[i].pkgs[0].p = parseFloat(res.recommended);
+    }
+  }
+  D.products[i].sp = parseFloat(res.recommended);
+  D.products[i].updatedAt = Date.now();
+  save();
+  toast(`Price updated to ${N(parseFloat(res.recommended))} ✓`, 'ok');
+  if (CUR === 'products') rProd();
+}
+
+function shareSmartPrice() {
+  const res = window._spResult;
+  if (!res) { toast('Calculate a price first', 'err'); return; }
+  const pid = document.getElementById('sp-prod')?.value;
+  const p   = pid ? D.products.find(x => x.id === pid) : null;
+  const buy = document.getElementById('sp-buy')?.value || '?';
+  const tr  = document.getElementById('sp-trans')?.value || '0';
+  const mg  = document.getElementById('sp-margin')?.value || '20';
+  let msg = `🧮 *Smart Pricing Analysis — KAGES*\n`;
+  if (p) msg += `📦 Product: ${p.name}\n`;
+  msg += `\n💰 Buy Cost: ${N(parseFloat(buy))}/unit\n`;
+  msg += `🚚 Transport: ${N(parseFloat(tr))} total\n`;
+  msg += `📊 True Cost: ${N(parseFloat(res.trueCost))}/unit\n`;
+  msg += `\n✅ Recommended Price: *${N(parseFloat(res.recommended))}/unit*\n`;
+  msg += `🎯 Target Margin: ${mg}%\n`;
+  msg += `\n_By KAGE TECH HUB · +2349131366099_`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ═══════════════════════════════════════════════════
+//  PIN LOCK
+// ═══════════════════════════════════════════════════
+let pinE = '';
+function showLock() { document.getElementById('lock').style.display = 'flex'; pinE = ''; updPD(); }
+function pk(k) {
+  if (k === 'C') pinE = pinE.slice(0,-1);
+  else if (k === 'OK') chkPin();
+  else if (pinE.length < 4) pinE += k;
+  updPD();
+  if (pinE.length === 4) setTimeout(chkPin, 200);
+}
+function updPD() { for (let i = 0; i < 4; i++) document.getElementById('pd'+i)?.classList.toggle('on', i < pinE.length); }
+function chkPin() {
+  if (pinE === D.pin) { document.getElementById('lock').style.display = 'none'; document.getElementById('pin-err').textContent = ''; }
+  else { document.getElementById('pin-err').textContent = 'Wrong PIN. Try again.'; pinE = ''; updPD(); }
+}
+
+// ═══════════════════════════════════════════════════
+//  MODAL & TOAST
+// ═══════════════════════════════════════════════════
+function openM(id) { document.getElementById(id).classList.add('open'); }
+function closeM(id) { document.getElementById(id).classList.remove('open'); stopCam(); }
+let _tt;
+function toast(msg, t) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (t ? ' '+t : '');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), 2900);
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+(function init() {
+  load();
+  loadPhotos();
+  // Apply base theme
+  const th = localStorage.getItem('kages_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', th);
+  document.getElementById('tbtn').textContent = th === 'dark' ? '🌙' : '☀️';
+  // Apply accent color
+  const acc = localStorage.getItem('kages_accent') || D.accent || 'green';
+  D.accent = acc;
+  document.documentElement.setAttribute('data-accent', acc === 'green' ? '' : acc);
+  // Header date
+  document.getElementById('hchip').textContent = new Date().toLocaleDateString('en-NG', {day:'numeric',month:'short',year:'numeric'});
+  updBadge();
+  rHome();
+  updLowStockBadge();
+  setTimeout(() => {
+    const sp = document.getElementById('splash');
+    if (sp) {
+      sp.classList.add('out');
+      setTimeout(() => {
+        sp.remove();
+        if (D.pin) showLock();
+      }, 700);
+    }
+  }, 3500);
+})();
+</script>
+</body>
+</html>
